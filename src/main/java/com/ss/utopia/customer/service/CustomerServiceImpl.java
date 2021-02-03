@@ -2,10 +2,7 @@ package com.ss.utopia.customer.service;
 
 import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
-import com.ss.utopia.customer.dto.CreateCustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
-import com.ss.utopia.customer.dto.UpdateCustomerDto;
-import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.*;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.AccountsClientException;
@@ -18,8 +15,12 @@ import com.ss.utopia.customer.repository.CustomerRepository;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerUpdateParams;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.validation.Valid;
+
+import com.stripe.param.PaymentMethodCreateParams;
+import com.stripe.param.PaymentMethodUpdateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -211,6 +212,21 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   /**
+   * Gets all {@link PaymentMethod}s for the specified {@link Customer}.
+   *
+   * @param customerId the customer ID.
+   * @return the found customer's payment methods.
+   * @throws NoSuchCustomerException if no customer record found with the given ID.
+   */
+  @Override
+  public Set<PaymentMethod> getAllPaymentMethodsFor(UUID customerId) {
+    notNull(customerId);
+
+    var customer = getCustomerById(customerId);
+    return customer.getPaymentMethods();
+  }
+
+  /**
    * Creates a new {@link PaymentMethod} record for a {@link Customer}.
    *
    * @param customerId       the customer ID for which the payment method belongs.
@@ -223,9 +239,25 @@ public class CustomerServiceImpl implements CustomerService {
     notNull(customerId);
 
     var customer = getCustomerById(customerId);
+
+    var stripeCard = PaymentMethodCreateParams.CardDetails.builder()
+            .setNumber(paymentMethodDto.getCardNumber())
+            .setExpMonth(paymentMethodDto.getExpMonth())
+            .setExpYear(paymentMethodDto.getExpYear())
+            .setCvc(paymentMethodDto.getCvc())
+            .build();
+
+    var stripeMethodParams = PaymentMethodCreateParams.builder()
+            .setType(PaymentMethodCreateParams.Type.CARD)
+            .setCard(stripeCard)
+            .setCustomer(customer.getStripeId())
+            .build();
+
+    String stripeMethodId = stripeCustomerService.createPaymentMethod(stripeMethodParams);
+
     var method = PaymentMethod.builder()
         .ownerId(customerId)
-        .accountNum(paymentMethodDto.getAccountNum())
+        .stripeId(stripeMethodId)
         .notes(paymentMethodDto.getNotes())
         .build();
     customer.getPaymentMethods().add(method);
@@ -235,7 +267,7 @@ public class CustomerServiceImpl implements CustomerService {
     // get the ID from the created payment method and return it
     return customer.getPaymentMethods()
         .stream()
-        .filter(m -> m.getAccountNum().equals(method.getAccountNum()))
+        .filter(m -> m.getStripeId().equals(method.getStripeId()))
         .mapToLong(PaymentMethod::getId)
         .findFirst()
         .orElseThrow();
@@ -246,7 +278,7 @@ public class CustomerServiceImpl implements CustomerService {
    *
    * @param customerId       the customer ID for which the payment method belongs.
    * @param paymentId        the payment method ID.
-   * @param paymentMethodDto a valid {@link PaymentMethodDto}.
+   * @param updatePaymentMethodDto   a valid {@link UpdatePaymentMethodDto}.
    * @throws NoSuchCustomerException if no customer record found with the given ID.
    * @throws NoSuchPaymentMethod     if no payment method record found with the given ID or if
    *                                 payment method ID does not belong to the given customer
@@ -255,8 +287,8 @@ public class CustomerServiceImpl implements CustomerService {
   @Override
   public void updatePaymentMethod(UUID customerId,
                                   Long paymentId,
-                                  PaymentMethodDto paymentMethodDto) {
-    notNull(customerId, paymentId, paymentMethodDto);
+                                  UpdatePaymentMethodDto updatePaymentMethodDto) {
+    notNull(customerId, paymentId, updatePaymentMethodDto);
 
     var customer = getCustomerById(customerId);
 
@@ -264,9 +296,10 @@ public class CustomerServiceImpl implements CustomerService {
             .stream()
             .filter(m -> m.getId().equals(paymentId))
             .findFirst()
-            .ifPresentOrElse(method -> {  // update method if present
-              method.setAccountNum(paymentMethodDto.getAccountNum());
-              method.setNotes(paymentMethodDto.getNotes());
+            .ifPresentOrElse(method -> {
+              //disallow updating anything but the notes, for admin portal or something
+              //if the customer wants to actually update, they delete and make a new one
+              method.setNotes(updatePaymentMethodDto.getNotes());
               customerRepository.save(customer);
             },
               () -> { // else throw ex
@@ -287,8 +320,17 @@ public class CustomerServiceImpl implements CustomerService {
 
     var customer = getCustomerById(customerId);
     customer.getPaymentMethods()
-        .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
-    customerRepository.save(customer);
+            .stream()
+            .filter(m -> m.getId().equals(paymentId))
+            .findFirst()
+            .ifPresentOrElse(method -> {
+              stripeCustomerService.detachStripePaymentMethod(method.getStripeId());
+              customer.getPaymentMethods().remove(method);
+              customerRepository.save(customer);
+            },
+              () -> { // else throw ex
+                throw new NoSuchPaymentMethod(customerId, paymentId);
+              });
   }
 
   @Override

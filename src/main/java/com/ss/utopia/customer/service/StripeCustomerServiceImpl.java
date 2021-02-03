@@ -3,9 +3,11 @@ package com.ss.utopia.customer.service;
 import com.ss.utopia.customer.exception.CaughtStripeException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
+import com.stripe.model.PaymentMethod;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentMethodCreateParams;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -58,6 +60,35 @@ public class StripeCustomerServiceImpl implements  StripeCustomerService {
       customer.delete(makeRequestOptions());
     } catch (StripeException e) {
       throw new CaughtStripeException(e);
+    }
+  }
+
+  @Override
+  public String createPaymentMethod(PaymentMethodCreateParams stripeMethodParams) {
+    try {
+      PaymentMethod paymentMethod = PaymentMethod.create(stripeMethodParams, makeRequestOptions());
+      return paymentMethod.getId();
+    } catch (StripeException e) {
+      throw new CaughtStripeException(e);
+    }
+  }
+
+  @Override
+  public PaymentMethod retrieveStripePaymentMethod(String paymentMethodId) {
+    try {
+      return PaymentMethod.retrieve(paymentMethodId, makeRequestOptions());
+    } catch (StripeException e) {
+      throw new CaughtStripeException(e);
+    }
+  }
+
+  @Override
+  public void detachStripePaymentMethod(String paymentMethodId) {
+    try {
+      PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId, makeRequestOptions());
+      paymentMethod.detach();
+    } catch (StripeException e) {
+      e.printStackTrace();
     }
   }
 

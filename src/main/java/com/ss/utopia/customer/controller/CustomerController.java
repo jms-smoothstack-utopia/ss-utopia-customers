@@ -1,10 +1,6 @@
 package com.ss.utopia.customer.controller;
 
-import com.ss.utopia.customer.dto.CreateCustomerDto;
-import com.ss.utopia.customer.dto.DeleteAccountDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
-import com.ss.utopia.customer.dto.UpdateCustomerDto;
-import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.*;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.security.permissions.AdminOnlyPermission;
@@ -17,6 +13,7 @@ import com.ss.utopia.customer.service.DeleteAccountService;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -147,6 +144,19 @@ public class CustomerController {
   }
 
   @GetCustomerByIdPermission
+  @GetMapping(value = "/{customerId}/payment-method/all",
+          produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<Set<PaymentMethod>> getAllPaymentMethodsFor(@PathVariable UUID customerId)
+  {
+    log.info("GET PaymentMethods all for customerId=" + customerId);
+    var paymentMethods = customerService.getAllPaymentMethodsFor(customerId);
+    if (paymentMethods.isEmpty()) {
+      return ResponseEntity.noContent().build();
+    }
+    return ResponseEntity.ok(paymentMethods);
+  }
+
+  @GetCustomerByIdPermission
   @PostMapping(value = "/{customerId}/payment-method",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Void> addPaymentMethod(@PathVariable UUID customerId,
@@ -164,9 +174,10 @@ public class CustomerController {
   public ResponseEntity<Void> updatePaymentMethod(@PathVariable UUID customerId,
                                                   @PathVariable Long paymentId,
                                                   @Valid @RequestBody
-                                                      PaymentMethodDto paymentMethodDto) {
+                                                          UpdatePaymentMethodDto
+                                                            updatePaymentMethodDto) {
     log.info("PUT PaymentMethod customerId,paymentId=" + customerId + "," + paymentId);
-    customerService.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
+    customerService.updatePaymentMethod(customerId, paymentId, updatePaymentMethodDto);
     return ResponseEntity.noContent().build();
   }
 

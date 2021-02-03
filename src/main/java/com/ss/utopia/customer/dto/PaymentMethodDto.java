@@ -12,8 +12,17 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PaymentMethodDto {
 
-  @NotBlank(message = "Account number is required.")
-  private String accountNum;
+  @NotBlank(message = "Card number is required.")
+  private String cardNumber;
+
+  @NotBlank(message = "Expiration month is required.")
+  private Long expMonth;
+
+  @NotBlank(message = "Expiration year is required.")
+  private Long expYear;
+
+  @NotBlank(message = "CVC is required.")
+  private String cvc;
 
   private String notes;
 }
