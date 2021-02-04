@@ -1,0 +1,105 @@
+{
+	"info": {
+		"_postman_id": "dd1c88a1-6010-4880-bb5c-7fa23cc707f5",
+		"name": "Utopia",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "customer",
+			"item": [
+				{
+					"name": "get all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/customer",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create new - valid",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"james\",\r\n    \"lastName\": \"doe\",\r\n    \"email\": \"test@test.com\",\r\n    \"addrLine1\": \"123 main st\",\r\n    \"addrLine2\": \"\",\r\n    \"city\": \"atlanta\",\r\n    \"state\":\"ga\",\r\n    \"zipcode\": \"12345\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/customer",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update existing - valid",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 1,\r\n    \"firstName\": \"john\",\r\n    \"lastName\": \"smith\",\r\n    \"email\": \"newemail@test.com\",\r\n    \"addrLine1\": \"456 new street\",\r\n    \"addrLine2\": \"Apt #1\",\r\n    \"city\": \"las vegas\",\r\n    \"state\":\"nv\",\r\n    \"zipcode\": \"99999-9999\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/customer",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"customer"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "remove existing",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/customer/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"customer",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
