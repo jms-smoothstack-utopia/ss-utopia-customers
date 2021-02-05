@@ -13,15 +13,15 @@ import org.springframework.web.client.RestTemplate;
 public class CustomerClient {
 
   private final RestTemplate restTemplate;
-  private String apiHost;
   private final String endpoint = "/customer/";
-
-  public void setApiHost(String apiHost) {
-    this.apiHost = apiHost;
-  }
+  private String apiHost;
 
   public CustomerClient(RestTemplateBuilder restTemplateBuilder) {
     this.restTemplate = restTemplateBuilder.build();
+  }
+
+  public void setApiHost(String apiHost) {
+    this.apiHost = apiHost;
   }
 
   public ResponseEntity<Customer[]> getAllCustomers() {
