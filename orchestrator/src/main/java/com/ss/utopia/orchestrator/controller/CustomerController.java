@@ -2,10 +2,12 @@ package com.ss.utopia.orchestrator.controller;
 
 import com.ss.utopia.orchestrator.client.CustomerClient;
 import com.ss.utopia.orchestrator.dto.CustomerDto;
+import com.ss.utopia.orchestrator.model.Customer;
 import javax.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,52 +29,35 @@ public class CustomerController {
   }
 
   @GetMapping
-  public ResponseEntity<?> getAll() {
+  public ResponseEntity<Customer[]> getAll() {
     return client.getAllCustomers();
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> getCustomerById(@PathVariable Long id) {
-    try {
-      return client.getCustomerById(id);
-    } catch (HttpClientErrorException ex) {
-      return handleException(ex);
-    }
+  public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+    return client.getCustomerById(id);
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
-    try {
-
-      return client.createNewCustomer(customerDto);
-    } catch (HttpClientErrorException ex) {
-      return handleException(ex);
-    }
+  public ResponseEntity<Long> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
+    return client.createNewCustomer(customerDto);
   }
 
   @PutMapping("/{id}")
   public ResponseEntity<?> updateExisting(@PathVariable Long id,
                                           @Valid @RequestBody CustomerDto customerDto) {
-    try {
-      client.updateExisting(id, customerDto);
-      return ResponseEntity.ok().build();
-    } catch (HttpClientErrorException ex) {
-      return handleException(ex);
-    }
+    client.updateExisting(id, customerDto);
+    return ResponseEntity.ok().build();
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> delete(@PathVariable Long id) {
-    try {
-      client.deleteCustomer(id);
-      return ResponseEntity.noContent().build();
-    } catch (HttpClientErrorException ex) {
-      return handleException(ex);
-    }
+    client.deleteCustomer(id);
+    return ResponseEntity.noContent().build();
   }
 
-  private ResponseEntity<?> handleException(HttpClientErrorException ex) {
-    //todo this likely can be replaced with an ExceptionHandler somehow.
+  @ExceptionHandler(value = HttpClientErrorException.class)
+  private ResponseEntity<?> exception(HttpClientErrorException ex) {
     return ResponseEntity.status(ex.getStatusCode())
         .headers(ex.getResponseHeaders())
         .body(ex.getResponseBodyAsByteArray());
