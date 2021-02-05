@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import javax.print.attribute.standard.Media;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,7 +54,7 @@ public class CustomerController {
     return ResponseEntity.of(service.getById(id));
   }
 
-  @PostMapping
+  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Long> createNew(@Valid @RequestBody CustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
     var createdCustomer = service.create(customer);
