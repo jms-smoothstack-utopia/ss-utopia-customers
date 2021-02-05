@@ -11,11 +11,12 @@ import static org.mockito.Mockito.when;
 
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.CustomerDto;
+import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.service.CustomerService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import javax.validation.Validation;
@@ -30,29 +31,24 @@ class CustomerControllerTest {
 
   private static final CustomerService service = Mockito.mock(CustomerService.class);
   private static final CustomerController controller = new CustomerController(service);
-  private Customer validCustomerWithId;
-  private CustomerDto validDtoWithId;
-  private Customer noIdValidCustomer;
-  private CustomerDto noIdValidDto;
-  private Address validAddress;
+  private Customer validCustomer;
+  private CustomerDto validDto;
 
   @BeforeEach
   void beforeEach() {
     Mockito.reset(service);
 
     // setup Customer objs
-    validCustomerWithId = new Customer();
-    noIdValidCustomer = new Customer();
-    validCustomerWithId.setId(1L);
-    validCustomerWithId.setFirstName("John");
-    noIdValidCustomer.setFirstName(validCustomerWithId.getFirstName());
-    validCustomerWithId.setLastName("Doe");
-    noIdValidCustomer.setLastName(validCustomerWithId.getLastName());
-    validCustomerWithId.setEmail("test@test.com");
-    noIdValidCustomer.setEmail(validCustomerWithId.getEmail());
+    validCustomer = new Customer();
+
+    validCustomer.setId(1L);
+    validCustomer.setFirstName("John");
+
+    validCustomer.setLastName("Doe");
+    validCustomer.setEmail("test@test.com");
 
     // setup Address
-    validAddress = new Address();
+    Address validAddress = new Address();
     validAddress.setCardinality(1);
     validAddress.setId(1L);
     validAddress.setLine1("123 Main St.");
@@ -62,42 +58,31 @@ class CustomerControllerTest {
     validAddress.setZipcode("12345");
 
     // add addr and empty payment methods
-    validCustomerWithId.setAddresses(Set.of(validAddress));
-    noIdValidCustomer.setAddresses(Set.of(validAddress));
-    validCustomerWithId.setPaymentMethods(Collections.emptySet());
-    noIdValidCustomer.setPaymentMethods(Collections.emptySet());
+    validCustomer.setAddresses(Set.of(validAddress));
+    validCustomer.setPaymentMethods(Collections.emptySet());
 
     // setup DTOs
-    validDtoWithId = new CustomerDto();
-    noIdValidDto = new CustomerDto();
-    validDtoWithId.setId(validCustomerWithId.getId());
-    validDtoWithId.setFirstName(validCustomerWithId.getFirstName());
-    noIdValidDto.setFirstName(validCustomerWithId.getFirstName());
-    validDtoWithId.setLastName(validCustomerWithId.getLastName());
-    noIdValidDto.setLastName(validCustomerWithId.getLastName());
-    validDtoWithId.setEmail(validCustomerWithId.getEmail());
-    noIdValidDto.setEmail(validCustomerWithId.getEmail());
-    validDtoWithId.setAddrLine1(validAddress.getLine1());
-    noIdValidDto.setAddrLine1(validAddress.getLine1());
-    validDtoWithId.setAddrLine2(validAddress.getLine2());
-    noIdValidDto.setAddrLine2(validAddress.getLine2());
-    validDtoWithId.setCity(validAddress.getCity());
-    noIdValidDto.setCity(validAddress.getCity());
-    validDtoWithId.setState(validAddress.getState());
-    noIdValidDto.setState(validAddress.getState());
-    validDtoWithId.setZipcode(validAddress.getZipcode());
-    noIdValidDto.setZipcode(validAddress.getZipcode());
+    validDto = new CustomerDto();
+
+    validDto.setFirstName(validCustomer.getFirstName());
+    validDto.setLastName(validCustomer.getLastName());
+    validDto.setEmail(validCustomer.getEmail());
+    validDto.setAddrLine1(validAddress.getLine1());
+    validDto.setAddrLine2(validAddress.getLine2());
+    validDto.setCity(validAddress.getCity());
+    validDto.setState(validAddress.getState());
+    validDto.setZipcode(validAddress.getZipcode());
   }
 
   @Test
   void test_getAll_ReturnsListWith200StatusCode() {
-    when(service.getAll()).thenReturn(List.of(validCustomerWithId));
+    when(service.getAll()).thenReturn(List.of(validCustomer));
 
     var response = controller.getAll();
 
     assertEquals(200, response.getStatusCodeValue());
 
-    var expectedList = List.of(validCustomerWithId);
+    var expectedList = List.of(validCustomer);
     assertEquals(expectedList, response.getBody());
   }
 
@@ -112,12 +97,12 @@ class CustomerControllerTest {
 
   @Test
   void test_getById_ReturnsValidCustomerWith200StatusCode() {
-    when(service.getById(validCustomerWithId.getId())).thenReturn(Optional.of(validCustomerWithId));
+    when(service.getById(validCustomer.getId())).thenReturn(Optional.of(validCustomer));
 
-    var response = controller.getById(validCustomerWithId.getId());
+    var response = controller.getById(validCustomer.getId());
 
     assertEquals(200, response.getStatusCodeValue());
-    assertEquals(validCustomerWithId, response.getBody());
+    assertEquals(validCustomer, response.getBody());
   }
 
   @Test
@@ -130,14 +115,13 @@ class CustomerControllerTest {
 
   @Test
   void test_createNew_ReturnsCreatedIdAnd201StatusCodeOnValidDto() {
-    validDtoWithId.setId(null);
 
-    when(service.create(any(Customer.class))).thenReturn(validCustomerWithId);
+    when(service.create(any(Customer.class))).thenReturn(validCustomer);
 
-    var response = controller.createNew(noIdValidDto);
+    var response = controller.createNew(validDto);
 
     assertEquals(201, response.getStatusCodeValue());
-    assertEquals(validCustomerWithId.getId(), response.getBody());
+    assertEquals(validCustomer.getId(), response.getBody());
   }
 
   //util
@@ -151,90 +135,89 @@ class CustomerControllerTest {
 
   @Test
   void test_createNew_DoesNotAllowInvalidFirstName() {
-    validDtoWithId.setFirstName(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setFirstName(null);
+    assertFalse(noValidationViolations(validDto));
 
-
-    validDtoWithId.setFirstName("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setFirstName("");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidLastName() {
-    validDtoWithId.setLastName(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setLastName(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setLastName("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setLastName("");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidEmail() {
-    validDtoWithId.setEmail(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setEmail(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setEmail("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setEmail("");
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setEmail("asdfasdf");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setEmail("asdfasdf");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidAddrLine1() {
-    validDtoWithId.setAddrLine1(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setAddrLine1(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setAddrLine1("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setAddrLine1("");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidCity() {
-    validDtoWithId.setCity(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setCity(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setCity("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setCity("");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidState() {
-    validDtoWithId.setState(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setState(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setState("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setState("");
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setState("a");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setState("a");
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setState("aaa");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setState("aaa");
+    assertFalse(noValidationViolations(validDto));
   }
 
   @Test
   void test_createNew_DoesNotAllowInvalidZipcode() {
-    validDtoWithId.setZipcode(null);
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setZipcode(null);
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setZipcode("");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setZipcode("");
+    assertFalse(noValidationViolations(validDto));
 
-    validDtoWithId.setZipcode("asdfd-asdf");
-    assertFalse(noValidationViolations(validDtoWithId));
+    validDto.setZipcode("asdfd-asdf");
+    assertFalse(noValidationViolations(validDto));
 
     // test valid zipcodes as well
-    validDtoWithId.setZipcode("12345-1234");
-    assertTrue(noValidationViolations(validDtoWithId));
+    validDto.setZipcode("12345-1234");
+    assertTrue(noValidationViolations(validDto));
 
-    validDtoWithId.setZipcode("12345");
-    assertTrue(noValidationViolations(validDtoWithId));
+    validDto.setZipcode("12345");
+    assertTrue(noValidationViolations(validDto));
   }
 
   @Test
   void test_updateExisting_ReturnsBadRequestOnMissingId() {
-    var response = controller.updateExisting(noIdValidDto);
+    var response = controller.updateExisting(null, validDto);
 
     assertEquals(400, response.getStatusCodeValue());
     assertNotNull(response.getBody());
@@ -251,13 +234,21 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_updateExisting_Returns200StatusCodeOnSuccess() {
-    when(service.update(any(Customer.class))).thenReturn(validCustomerWithId);
+  void test_updateExisting_Returns404StatusCodeOnNonExistentCustomer() {
+    when(service.update(any(Customer.class))).thenThrow(NoSuchElementException.class);
 
-    var response = controller.updateExisting(validDtoWithId);
+    var response = controller.updateExisting(validCustomer.getId(), validDto);
+    assertEquals(404, response.getStatusCodeValue());
+  }
+
+  @Test
+  void test_updateExisting_Returns200StatusCodeOnSuccess() {
+    when(service.update(any(Customer.class))).thenReturn(validCustomer);
+
+    var response = controller.updateExisting(validCustomer.getId(), validDto);
 
     assertEquals(200, response.getStatusCodeValue());
-    assertEquals(validCustomerWithId, response.getBody());
+    assertEquals(validCustomer, response.getBody());
   }
 
   @Test

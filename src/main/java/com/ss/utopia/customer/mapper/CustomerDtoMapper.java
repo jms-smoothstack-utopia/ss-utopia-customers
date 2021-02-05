@@ -2,7 +2,7 @@ package com.ss.utopia.customer.mapper;
 
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.CustomerDto;
+import com.ss.utopia.customer.dto.CustomerDto;
 import java.util.Collections;
 import java.util.Set;
 
@@ -10,9 +10,7 @@ public class CustomerDtoMapper {
 
   public static Customer map(CustomerDto customerDto) {
     var customer = new Customer();
-    if (customerDto.getId() != null) {
-      customer.setId(customerDto.getId());
-    }
+
     customer.setFirstName(customerDto.getFirstName());
     customer.setLastName(customerDto.getLastName());
     customer.setEmail(customerDto.getEmail());

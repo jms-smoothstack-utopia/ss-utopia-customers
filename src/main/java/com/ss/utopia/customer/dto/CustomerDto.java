@@ -1,4 +1,4 @@
-package com.ss.utopia.customer.model;
+package com.ss.utopia.customer.dto;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -8,8 +8,6 @@ import lombok.Data;
 
 @Data
 public class CustomerDto {
-
-  private Long id;
 
   @NotBlank(message = "First name is mandatory")
   private String firstName;

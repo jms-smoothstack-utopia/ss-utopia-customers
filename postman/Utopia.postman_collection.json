@@ -68,13 +68,14 @@
 							}
 						},
 						"url": {
-							"raw": "localhost:8080/customer",
+							"raw": "localhost:8080/customer/1",
 							"host": [
 								"localhost"
 							],
 							"port": "8080",
 							"path": [
-								"customer"
+								"customer",
+								"1"
 							]
 						}
 					},

@@ -1,12 +1,13 @@
 package com.ss.utopia.customer.controller;
 
+import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.CustomerDto;
 import com.ss.utopia.customer.service.CustomerService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
 import org.slf4j.Logger;
@@ -58,16 +59,23 @@ public class CustomerController {
     return ResponseEntity.status(201).body(createdCustomer.getId());
   }
 
-  @PutMapping
-  public ResponseEntity<?> updateExisting(@Valid @RequestBody CustomerDto customerDto) {
-    if (customerDto.getId() == null) {
+  @PutMapping("/{id}")
+  public ResponseEntity<?> updateExisting(@PathVariable Long id,
+                                          @Valid @RequestBody CustomerDto customerDto) {
+    if (id == null) {
       return ResponseEntity.badRequest()
           .body(Map.of("message", "Customer ID is required for update."));
     }
     var customerTouUpdate = CustomerDtoMapper.map(customerDto);
-    var updatedCustomer = service.update(customerTouUpdate);
+    customerTouUpdate.setId(id);
 
-    return ResponseEntity.ok(updatedCustomer);
+    try {
+      var updatedCustomer = service.update(customerTouUpdate);
+      return ResponseEntity.ok(updatedCustomer);
+    } catch (NoSuchElementException ex) {
+      log.error(ex.getMessage());
+      return ResponseEntity.notFound().build();
+    }
   }
 
   @DeleteMapping("/{id}")
