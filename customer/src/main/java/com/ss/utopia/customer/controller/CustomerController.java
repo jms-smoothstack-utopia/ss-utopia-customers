@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import javax.print.attribute.standard.Media;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +60,8 @@ public class CustomerController {
     return ResponseEntity.status(201).body(createdCustomer.getId());
   }
 
+  //todo DTO should be updated to allow multiple addresses (or a new one created).
+  // Additionally, any field not present should not cause an error and should instead just not be modified.
   @PutMapping("/{id}")
   public ResponseEntity<?> updateExisting(@PathVariable Long id,
                                           @Valid @RequestBody CustomerDto customerDto) {

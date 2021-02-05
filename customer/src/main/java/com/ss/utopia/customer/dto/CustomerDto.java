@@ -6,6 +6,7 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import lombok.Data;
 
+//todo update to allow multiple address input
 @Data
 public class CustomerDto {
 

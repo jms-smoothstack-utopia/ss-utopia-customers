@@ -15,9 +15,6 @@ public class Address {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne
-  private Customer customer;
-
   private Integer cardinality;
 
   private String line1;
