@@ -1,10 +1,12 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.exception.NoSuchCustomerException;
+import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.model.Customer;
+import com.ss.utopia.customer.model.PaymentMethod;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,8 +19,9 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
-  public Optional<Customer> getById(Long id) {
-    return repository.findById(id);
+  public Customer getById(Long id) {
+    return repository.findById(id)
+        .orElseThrow(() -> new NoSuchCustomerException(id));
   }
 
   @Override
@@ -45,8 +48,8 @@ public class CustomerServiceImpl implements CustomerService {
    *
    * @param toUpdate The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
-   * @throws IllegalStateException  if customer ID is null or less than 1.
-   * @throws NoSuchElementException if no Customer found with the ID.
+   * @throws IllegalStateException   if customer ID is null or less than 1.
+   * @throws NoSuchCustomerException if no Customer found with the ID.
    */
   @Override
   public Customer update(Customer toUpdate) {
@@ -60,10 +63,55 @@ public class CustomerServiceImpl implements CustomerService {
 
     if (exists) {
       return repository.save(toUpdate);
+    } else {
+      throw new NoSuchCustomerException(id);
     }
-
-    throw new NoSuchElementException("No customer with id '" + id + "' found.");
   }
 
+  @Override
+  public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
+    var customer = getById(customerId);
 
+    var method = new PaymentMethod();
+    method.setAccountNum(paymentMethodDto.getAccountNum());
+    method.setNotes(paymentMethodDto.getNotes());
+    customer.getPaymentMethods().add(method);
+
+    repository.save(customer);
+
+    return customer.getPaymentMethods()
+        .stream()
+        .filter(m -> m.getAccountNum().equals(method.getAccountNum()))
+        .mapToLong(PaymentMethod::getId)
+        .findFirst()
+        .orElseThrow();
+  }
+
+  @Override
+  public void updatePaymentMethod(Long customerId,
+                                  Long paymentId,
+                                  PaymentMethodDto paymentMethodDto) {
+    var customer = getById(customerId);
+
+    customer.getPaymentMethods()
+        .stream()
+        .filter(m -> m.getId().equals(paymentId))
+        .findFirst()
+        .ifPresentOrElse(method -> {
+                           method.setAccountNum(paymentMethodDto.getAccountNum());
+                           method.setNotes(paymentMethodDto.getNotes());
+                           repository.save(customer);
+                         },
+                         () -> {
+                           throw new NoSuchPaymentMethod(customerId, paymentId);
+                         });
+  }
+
+  @Override
+  public void removePaymentMethod(Long customerId, Long paymentId) {
+    var customer = getById(customerId);
+    customer.getPaymentMethods()
+        .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
+    repository.save(customer);
+  }
 }

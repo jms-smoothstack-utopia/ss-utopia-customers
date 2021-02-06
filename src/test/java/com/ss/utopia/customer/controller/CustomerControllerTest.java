@@ -9,15 +9,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.service.CustomerService;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import javax.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,7 +97,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getById_ReturnsValidCustomerWith200StatusCode() {
-    when(service.getById(validCustomer.getId())).thenReturn(Optional.of(validCustomer));
+    when(service.getById(validCustomer.getId())).thenReturn(validCustomer);
 
     var response = controller.getById(validCustomer.getId());
 
@@ -121,7 +121,8 @@ class CustomerControllerTest {
     var response = controller.createNew(validDto);
 
     assertEquals(201, response.getStatusCodeValue());
-    assertEquals(validCustomer.getId(), response.getBody());
+    var expected = URI.create("/customer/" + validCustomer.getId());
+    assertEquals(expected, response.getBody());
   }
 
   //util

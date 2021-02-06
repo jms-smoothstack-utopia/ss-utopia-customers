@@ -1,13 +1,13 @@
 package com.ss.utopia.customer.controller;
 
 import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.service.CustomerService;
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ public class CustomerController {
 
   @GetMapping("/{id}")
   public ResponseEntity<Customer> getById(@PathVariable Long id) {
-    return ResponseEntity.of(service.getById(id));
+    return ResponseEntity.of(Optional.of(service.getById(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
@@ -57,23 +57,14 @@ public class CustomerController {
 
   //todo DTO should be updated to allow multiple addresses (or a new one created).
   // Additionally, any field not present should not cause an error and should instead just not be modified.
-  @PutMapping("/{id}")
+  @PutMapping(value = "/{id}",
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExisting(@PathVariable Long id,
                                           @Valid @RequestBody CustomerDto customerDto) {
-    if (id == null) {
-      return ResponseEntity.badRequest()
-          .body(Map.of("message", "Customer ID is required for update."));
-    }
     var customerTouUpdate = CustomerDtoMapper.map(customerDto);
     customerTouUpdate.setId(id);
-
-    try {
-      var updatedCustomer = service.update(customerTouUpdate);
-      return ResponseEntity.ok(updatedCustomer);
-    } catch (NoSuchElementException ex) {
-      log.error(ex.getMessage());
-      return ResponseEntity.notFound().build();
-    }
+    service.update(customerTouUpdate);
+    return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
@@ -82,4 +73,28 @@ public class CustomerController {
     return ResponseEntity.noContent().build();
   }
 
+  @PostMapping(value = "/{id}/payment-method",
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<URI> addPaymentMethod(@PathVariable Long id,
+                                              @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+    var paymentId = service.addPaymentMethod(id, paymentMethodDto);
+    var uri = URI.create("/" + id + "/payment-method/" + paymentId);
+    return ResponseEntity.created(uri).build();
+  }
+
+  @PutMapping(value = "/{customerId}/payment-method/{paymentId}",
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<?> updatePaymentMethod(@PathVariable Long customerId,
+                                               @PathVariable Long paymentId,
+                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+    service.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/{customerId}/payment-method/{paymentId}")
+  public ResponseEntity<?> removePaymentMethod(@PathVariable Long customerId,
+                                               @PathVariable Long paymentId) {
+    service.removePaymentMethod(customerId, paymentId);
+    return ResponseEntity.noContent().build();
+  }
 }

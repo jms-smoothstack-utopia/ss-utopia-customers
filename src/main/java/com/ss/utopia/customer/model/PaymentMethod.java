@@ -6,10 +6,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import lombok.Data;
 
-/**
- * TODO: Verify payment method storage information needed.
- * TODO: Figure out relational mapping.
- */
 @Data
 @Entity
 public class PaymentMethod {

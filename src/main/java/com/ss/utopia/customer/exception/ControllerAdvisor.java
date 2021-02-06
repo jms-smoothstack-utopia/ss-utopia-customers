@@ -2,6 +2,7 @@ package com.ss.utopia.customer.exception;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,16 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ControllerAdvisor {
 
   private static final Logger log = LoggerFactory.getLogger(ControllerAdvisor.class);
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(NoSuchElementException.class)
+  public Map<String, Object> handleNoSuchElementExceptions(NoSuchElementException ex) {
+    var response = new HashMap<String, Object>();
+    response.put("error", "No such element.");
+    response.put("status", 404);
+    response.put("message", ex.getMessage());
+    return response;
+  }
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
