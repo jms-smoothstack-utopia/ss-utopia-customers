@@ -4,6 +4,7 @@ import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.service.CustomerService;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +55,11 @@ public class CustomerController {
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Long> createNew(@Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<URI> createNew(@Valid @RequestBody CustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
     var createdCustomer = service.create(customer);
-    return ResponseEntity.status(201).body(createdCustomer.getId());
+    var uri = URI.create("/customer/" + createdCustomer.getId());
+    return ResponseEntity.created(uri).build();
   }
 
   //todo DTO should be updated to allow multiple addresses (or a new one created).
