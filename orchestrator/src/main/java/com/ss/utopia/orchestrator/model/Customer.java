@@ -7,15 +7,10 @@ import lombok.Data;
 public class Customer {
 
   private Long id;
-
   private String firstName;
-
   private String lastName;
-
   private String email;
-
   private Set<Address> addresses;
-
   private Set<PaymentMethod> paymentMethods;
 }
 
