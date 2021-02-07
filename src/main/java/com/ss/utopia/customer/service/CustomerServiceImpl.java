@@ -1,13 +1,16 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
+import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.model.PaymentMethod;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
+import javax.validation.Valid;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,10 +34,8 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
-  public Customer create(Customer customer) {
-    if (customer.getId() != null) {
-      customer.setId(null);
-    }
+  public Customer create(@Valid CustomerDto customerDto) {
+    var customer = CustomerDtoMapper.map(customerDto);
 
     repository.findByEmail(customer.getEmail())
         .ifPresent(c -> {
@@ -52,27 +53,22 @@ public class CustomerServiceImpl implements CustomerService {
 
   /**
    * Update an existing {@link Customer} account.
+   * <p>
+   * TODO: Update to allow multiple addr fields
    *
-   * @param toUpdate The {@link Customer} account to update.
+   * @param customerDto The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
    * @throws IllegalStateException   if customer ID is null or less than 1.
    * @throws NoSuchCustomerException if no Customer found with the ID.
    */
   @Override
-  public Customer update(Customer toUpdate) {
-    var id = toUpdate.getId();
-
-    if (id == null || id < 1) {
-      throw new IllegalArgumentException("ID cannot be null or less than 1.");
-    }
-
-    var exists = repository.findById(id).isPresent();
-
-    if (exists) {
-      return repository.save(toUpdate);
-    } else {
-      throw new NoSuchCustomerException(id);
-    }
+  public Customer update(Long customerId, @Valid CustomerDto customerDto) {
+    var oldValue = getById(customerId);
+    var newValue = CustomerDtoMapper.map(customerDto);
+    // set from old payment methods or it'll be erased
+    newValue.setPaymentMethods(oldValue.getPaymentMethods());
+    newValue.setId(customerId);
+    return repository.save(newValue);
   }
 
   @Override
@@ -81,6 +77,8 @@ public class CustomerServiceImpl implements CustomerService {
         .map(customer -> customer.getPaymentMethods()
             .stream()
             .filter(paymentMethod -> paymentMethod.getId().equals(paymentId))
+            // sanity check, don't allow updates if not owner
+            .filter(paymentMethod -> paymentMethod.getOwnerId().equals(customerId))
             .findFirst()
             .orElseThrow(() -> new NoSuchPaymentMethod(customerId, paymentId)))
         .orElseThrow(() -> new NoSuchCustomerException(customerId));
@@ -117,12 +115,12 @@ public class CustomerServiceImpl implements CustomerService {
         .stream()
         .filter(m -> m.getId().equals(paymentId))
         .findFirst()
-        .ifPresentOrElse(method -> {
+        .ifPresentOrElse(method -> {  // update method if present
                            method.setAccountNum(paymentMethodDto.getAccountNum());
                            method.setNotes(paymentMethodDto.getNotes());
                            repository.save(customer);
                          },
-                         () -> {
+                         () -> { // else throw ex
                            throw new NoSuchPaymentMethod(customerId, paymentId);
                          });
   }

@@ -2,7 +2,6 @@ package com.ss.utopia.customer.controller;
 
 import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
-import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.model.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
@@ -45,13 +44,12 @@ public class CustomerController {
 
   @GetMapping("/{id}")
   public ResponseEntity<Customer> getById(@PathVariable Long id) {
-    return ResponseEntity.of(Optional.of(service.getById(id)));
+    return ResponseEntity.of(Optional.ofNullable(service.getById(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<URI> createNew(@Valid @RequestBody CustomerDto customerDto) {
-    var customer = CustomerDtoMapper.map(customerDto);
-    var createdCustomer = service.create(customer);
+    var createdCustomer = service.create(customerDto);
     var uri = URI.create("/customer/" + createdCustomer.getId());
     return ResponseEntity.created(uri).build();
   }
@@ -62,9 +60,7 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExisting(@PathVariable Long id,
                                           @Valid @RequestBody CustomerDto customerDto) {
-    var customerTouUpdate = CustomerDtoMapper.map(customerDto);
-    customerTouUpdate.setId(id);
-    service.update(customerTouUpdate);
+    service.update(id, customerDto);
     return ResponseEntity.noContent().build();
   }
 
@@ -75,7 +71,8 @@ public class CustomerController {
   }
 
   @GetMapping("/{customerId}/payment-method/{paymentId}")
-  public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId, @PathVariable Long paymentId) {
+  public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId,
+                                                        @PathVariable Long paymentId) {
     return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
   }
 

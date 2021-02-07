@@ -7,9 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
 import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.service.CustomerService;
@@ -107,6 +110,8 @@ class CustomerControllerTest {
 
   @Test
   void test_getById_Returns404StatusCodeOnInvalidId() {
+    when(service.getById(-1L)).thenReturn(null);
+
     var response = controller.getById(-1L);
 
     assertEquals(404, response.getStatusCodeValue());
@@ -116,13 +121,16 @@ class CustomerControllerTest {
   @Test
   void test_createNew_ReturnsCreatedIdAnd201StatusCodeOnValidDto() {
 
-    when(service.create(any(Customer.class))).thenReturn(validCustomer);
+    when(service.create(any(CustomerDto.class))).thenReturn(validCustomer);
 
     var response = controller.createNew(validDto);
 
     assertEquals(201, response.getStatusCodeValue());
-    var expected = URI.create("/customer/" + validCustomer.getId());
-    assertEquals(expected, response.getBody());
+
+    var expectedUri = URI.create("/customer/" + validCustomer.getId());
+    var actualUri = response.getHeaders().getLocation();
+
+    assertEquals(expectedUri, actualUri);
   }
 
   //util
@@ -216,8 +224,16 @@ class CustomerControllerTest {
     assertTrue(noValidationViolations(validDto));
   }
 
+  /**
+   * fixme unit test is written incorrectly.
+   * see also {@link #test_updateExisting_Returns404StatusCodeOnNonExistentCustomer()}
+   */
   @Test
   void test_updateExisting_ReturnsBadRequestOnMissingId() {
+
+    when(service.update(nullable(Long.class), any(CustomerDto.class)))
+        .thenThrow(new NoSuchCustomerException(1L));
+
     var response = controller.updateExisting(null, validDto);
 
     assertEquals(400, response.getStatusCodeValue());
@@ -234,9 +250,15 @@ class CustomerControllerTest {
     }
   }
 
+  /**
+   * fixme unit test is failing: something off about the mock the exception is not handled by
+   * controller advice possibly due to not autowiring the controller
+   * see also {@link #test_updateExisting_ReturnsBadRequestOnMissingId()}
+   */
   @Test
   void test_updateExisting_Returns404StatusCodeOnNonExistentCustomer() {
-    when(service.update(any(Customer.class))).thenThrow(NoSuchElementException.class);
+    when(service.update(anyLong(), any(CustomerDto.class)))
+        .thenThrow(NoSuchElementException.class);
 
     var response = controller.updateExisting(validCustomer.getId(), validDto);
     assertEquals(404, response.getStatusCodeValue());
@@ -244,12 +266,11 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExisting_Returns200StatusCodeOnSuccess() {
-    when(service.update(any(Customer.class))).thenReturn(validCustomer);
+    when(service.update(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
 
     var response = controller.updateExisting(validCustomer.getId(), validDto);
 
-    assertEquals(200, response.getStatusCodeValue());
-    assertEquals(validCustomer, response.getBody());
+    assertEquals(204, response.getStatusCodeValue());
   }
 
   @Test

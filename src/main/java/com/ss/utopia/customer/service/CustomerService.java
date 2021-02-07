@@ -1,5 +1,6 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.model.PaymentMethod;
@@ -12,11 +13,11 @@ public interface CustomerService {
 
   Customer getById(Long id);
 
-  Customer create(Customer customer);
+  Customer create(CustomerDto customerDto);
 
   void removeById(Long id);
 
-  Customer update(Customer customer);
+  Customer update(Long customerId, CustomerDto customerDto);
 
   Long addPaymentMethod(Long id, PaymentMethodDto paymentMethodDto);
 
