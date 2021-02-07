@@ -1,5 +1,7 @@
 package com.ss.utopia.customer.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.model.PaymentMethod;
@@ -8,9 +10,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Profile;
 
-@Profile("test")
 @SpringBootTest
 class CustomerServiceImplTest {
 
@@ -18,7 +18,7 @@ class CustomerServiceImplTest {
   private CustomerRepository repository;
 
   @Test
-  void test_repo() {
+  void test_verifyUsingH2Repository() {
     new Address();
     var customer = Customer.builder()
         .firstName("fname")
@@ -38,6 +38,8 @@ class CustomerServiceImplTest {
                                    .build()))
         .build();
 
+    assertEquals(repository.findAll().size(), 0);
     repository.save(customer);
+    assertEquals(repository.findAll().size(), 1);
   }
 }
