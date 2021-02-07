@@ -40,6 +40,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
 
+  public static final String ENDPOINT = "/customer";
+
   private final CustomerService service = Mockito.mock(CustomerService.class);
   private final CustomerController controller = new CustomerController(service);
   private final ObjectMapper jsonMapper = new ObjectMapper();
@@ -95,7 +97,7 @@ class CustomerControllerTest {
     when(service.getAll()).thenReturn(List.of(validCustomer));
 
     var result = mvc
-        .perform(get("/customer"))
+        .perform(get(ENDPOINT))
         .andExpect(status().is(200))
         .andReturn();
 
@@ -112,7 +114,7 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            get("/customer"))
+            get(ENDPOINT))
         .andExpect(status().is(204));
   }
 
@@ -122,7 +124,7 @@ class CustomerControllerTest {
 
     var result = mvc
         .perform(
-            get("/customer/" + validCustomer.getId()))
+            get(ENDPOINT + "/" + validCustomer.getId()))
         .andExpect(status().is(200))
         .andReturn();
 
@@ -138,7 +140,7 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            get("/customer/-1"))
+            get(ENDPOINT + "/-1"))
         .andExpect(status().is(404));
   }
 
@@ -147,11 +149,11 @@ class CustomerControllerTest {
     when(service.create(validDto)).thenReturn(validCustomer);
 
     var headerName = "Location";
-    var headerVal = "/customer/" + validCustomer.getId();
+    var headerVal = ENDPOINT + "/" +validCustomer.getId();
 
     mvc
         .perform(
-            post("/customer")
+            post(ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(201))
@@ -252,7 +254,7 @@ class CustomerControllerTest {
   void test_updateExisting_Returns405OnMissingId() throws Exception {
     mvc
         .perform(
-            put("/customer/"))
+            put(ENDPOINT))
         .andExpect(status().is(405));
   }
 
