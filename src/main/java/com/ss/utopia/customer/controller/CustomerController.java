@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/customer")
 public class CustomerController {
 
+  //todo add logging
   private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
   private final CustomerService service;
 
@@ -33,7 +34,7 @@ public class CustomerController {
     this.service = customerService;
   }
 
-  @GetMapping
+  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Customer>> getAll() {
     var customers = service.getAll();
     if (customers.isEmpty()) {
@@ -42,7 +43,7 @@ public class CustomerController {
     return ResponseEntity.ok(customers);
   }
 
-  @GetMapping("/{id}")
+  @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Customer> getById(@PathVariable Long id) {
     return ResponseEntity.of(Optional.ofNullable(service.getById(id)));
   }
@@ -70,7 +71,8 @@ public class CustomerController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/{customerId}/payment-method/{paymentId}")
+  @GetMapping(value = "/{customerId}/payment-method/{paymentId}",
+      produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId,
                                                         @PathVariable Long paymentId) {
     return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
