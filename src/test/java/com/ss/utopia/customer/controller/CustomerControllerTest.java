@@ -2,38 +2,49 @@ package com.ss.utopia.customer.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.exception.ControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
 import com.ss.utopia.customer.service.CustomerService;
-import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
 
-  private static final CustomerService service = Mockito.mock(CustomerService.class);
-  private static final CustomerController controller = new CustomerController(service);
+  private final CustomerService service = Mockito.mock(CustomerService.class);
+  private final CustomerController controller = new CustomerController(service);
+  private final ObjectMapper jsonMapper = new ObjectMapper();
+  private final MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+      .setControllerAdvice(new ControllerAdvisor())
+      .build();
+
   private Customer validCustomer;
   private CustomerDto validDto;
 
@@ -78,68 +89,79 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getAll_ReturnsListWith200StatusCode() {
+  void test_getAll_ReturnsListWith200StatusCode() throws Exception {
     when(service.getAll()).thenReturn(List.of(validCustomer));
 
-    var response = controller.getAll();
+    var result = mvc
+        .perform(get("/customer"))
+        .andExpect(status().is(200))
+        .andReturn();
 
-    assertEquals(200, response.getStatusCodeValue());
+    var response = Arrays
+        .stream(jsonMapper.readValue(result.getResponse().getContentAsString(), Customer[].class))
+        .collect(Collectors.toList());
 
-    var expectedList = List.of(validCustomer);
-    assertEquals(expectedList, response.getBody());
+    assertEquals(List.of(validCustomer), response);
   }
 
   @Test
-  void test_getAll_ReturnsEmptyListWith204StatusCodeIfNoCustomers() {
-    var response = controller.getAll();
+  void test_getAll_ReturnsEmptyListWith204StatusCodeIfNoCustomers() throws Exception {
+    when(service.getAll()).thenReturn(Collections.emptyList());
 
-    assertEquals(204, response.getStatusCodeValue());
-
-    assertNull(response.getBody());
+    mvc
+        .perform(
+            get("/customer"))
+        .andExpect(status().is(204));
   }
 
   @Test
-  void test_getById_ReturnsValidCustomerWith200StatusCode() {
+  void test_getById_ReturnsValidCustomerWith200StatusCode() throws Exception {
     when(service.getById(validCustomer.getId())).thenReturn(validCustomer);
 
-    var response = controller.getById(validCustomer.getId());
+    var result = mvc
+        .perform(
+            get("/customer/" + validCustomer.getId()))
+        .andExpect(status().is(200))
+        .andReturn();
 
-    assertEquals(200, response.getStatusCodeValue());
-    assertEquals(validCustomer, response.getBody());
+    var response = jsonMapper
+        .readValue(result.getResponse().getContentAsString(), Customer.class);
+
+    assertEquals(validCustomer, response);
   }
 
   @Test
-  void test_getById_Returns404StatusCodeOnInvalidId() {
-    when(service.getById(-1L)).thenReturn(null);
+  void test_getById_Returns404OnInvalidId() throws Exception {
+    when(service.getById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
 
-    var response = controller.getById(-1L);
-
-    assertEquals(404, response.getStatusCodeValue());
-    assertNull(response.getBody());
+    mvc
+        .perform(
+            get("/customer/-1"))
+        .andExpect(status().is(404));
   }
 
   @Test
-  void test_createNew_ReturnsCreatedIdAnd201StatusCodeOnValidDto() {
+  void test_createNew_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
+    when(service.create(validDto)).thenReturn(validCustomer);
 
-    when(service.create(any(CustomerDto.class))).thenReturn(validCustomer);
+    var headerName = "Location";
+    var headerVal = "/customer/" + validCustomer.getId();
 
-    var response = controller.createNew(validDto);
-
-    assertEquals(201, response.getStatusCodeValue());
-
-    var expectedUri = URI.create("/customer/" + validCustomer.getId());
-    var actualUri = response.getHeaders().getLocation();
-
-    assertEquals(expectedUri, actualUri);
+    mvc
+        .perform(
+            post("/customer")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validDto)))
+        .andExpect(status().is(201))
+        .andExpect(header().string(headerName, headerVal));
   }
 
   //util
   boolean noValidationViolations(CustomerDto customerDto) {
-    var validator = Validation.buildDefaultValidatorFactory().getValidator();
-
-    var violations = validator.validate(customerDto);
-
-    return violations.isEmpty();
+    return Validation.buildDefaultValidatorFactory()
+        .getValidator()
+        .validate(customerDto)
+        .isEmpty();
   }
 
   @Test
@@ -224,60 +246,44 @@ class CustomerControllerTest {
     assertTrue(noValidationViolations(validDto));
   }
 
-  /**
-   * fixme unit test is written incorrectly.
-   * see also {@link #test_updateExisting_Returns404StatusCodeOnNonExistentCustomer()}
-   */
   @Test
-  void test_updateExisting_ReturnsBadRequestOnMissingId() {
-
-    when(service.update(nullable(Long.class), any(CustomerDto.class)))
-        .thenThrow(new NoSuchCustomerException(1L));
-
-    var response = controller.updateExisting(null, validDto);
-
-    assertEquals(400, response.getStatusCodeValue());
-    assertNotNull(response.getBody());
-
-    try {
-      Map<String, String> body = (Map<String, String>) response.getBody();
-
-      assertTrue(body.containsKey("message"));
-
-      assertFalse(body.get("message").isBlank());
-    } catch (ClassCastException ex) {
-      fail(ex.getMessage());
-    }
+  void test_updateExisting_Returns405OnMissingId() throws Exception {
+    mvc
+        .perform(
+            put("/customer/"))
+        .andExpect(status().is(405));
   }
 
-  /**
-   * fixme unit test is failing: something off about the mock the exception is not handled by
-   * controller advice possibly due to not autowiring the controller
-   * see also {@link #test_updateExisting_ReturnsBadRequestOnMissingId()}
-   */
   @Test
-  void test_updateExisting_Returns404StatusCodeOnNonExistentCustomer() {
+  void test_updateExisting_Returns404OnNonExistentCustomer() throws Exception {
     when(service.update(anyLong(), any(CustomerDto.class)))
-        .thenThrow(NoSuchElementException.class);
+        .thenThrow(new NoSuchCustomerException(-1L));
 
-    var response = controller.updateExisting(validCustomer.getId(), validDto);
-    assertEquals(404, response.getStatusCodeValue());
+    mvc
+        .perform(
+            put("/customer/-1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validDto)))
+        .andExpect(status().is(404));
   }
 
   @Test
-  void test_updateExisting_Returns200StatusCodeOnSuccess() {
+  void test_updateExisting_Returns200StatusCodeOnSuccess() throws Exception {
     when(service.update(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
 
-    var response = controller.updateExisting(validCustomer.getId(), validDto);
-
-    assertEquals(204, response.getStatusCodeValue());
+    mvc
+        .perform(
+            put("/customer/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validDto)))
+        .andExpect(status().is(204));
   }
 
   @Test
-  void test_delete_Returns204StatusCode() {
-    var response = controller.delete(1L);
-
-    assertEquals(204, response.getStatusCodeValue());
-    assertNull(response.getBody());
+  void test_delete_Returns204StatusCode() throws Exception {
+    mvc
+        .perform(
+            delete("/customer/1"))
+        .andExpect(status().is(204));
   }
 }
