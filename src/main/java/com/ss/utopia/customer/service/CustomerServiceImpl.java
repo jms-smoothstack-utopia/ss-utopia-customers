@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.service;
 
 import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.model.Customer;
@@ -34,6 +35,12 @@ public class CustomerServiceImpl implements CustomerService {
     if (customer.getId() != null) {
       customer.setId(null);
     }
+
+    repository.findByEmail(customer.getEmail())
+        .ifPresent(c -> {
+          throw new DuplicateEmailException(c.getEmail());
+        });
+
     return repository.save(customer);
   }
 
@@ -79,6 +86,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     repository.save(customer);
 
+    // get the ID from the created payment method and return it
     return customer.getPaymentMethods()
         .stream()
         .filter(m -> m.getAccountNum().equals(method.getAccountNum()))

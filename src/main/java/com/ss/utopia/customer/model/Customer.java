@@ -2,6 +2,7 @@ package com.ss.utopia.customer.model;
 
 import java.util.Set;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -21,6 +22,7 @@ public class Customer {
 
   private String lastName;
 
+  @Column(unique = true)
   private String email;
 
   @OneToMany(cascade = CascadeType.ALL)
