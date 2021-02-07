@@ -76,10 +76,22 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
+  public PaymentMethod getPaymentMethod(Long customerId, Long paymentId) {
+    return repository.findById(customerId)
+        .map(customer -> customer.getPaymentMethods()
+            .stream()
+            .filter(paymentMethod -> paymentMethod.getId().equals(paymentId))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchPaymentMethod(customerId, paymentId)))
+        .orElseThrow(() -> new NoSuchCustomerException(customerId));
+  }
+
+  @Override
   public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
     var customer = getById(customerId);
 
     var method = new PaymentMethod();
+    method.setOwnerId(customer.getId());
     method.setAccountNum(paymentMethodDto.getAccountNum());
     method.setNotes(paymentMethodDto.getNotes());
     customer.getPaymentMethods().add(method);

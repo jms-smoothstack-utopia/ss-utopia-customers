@@ -4,6 +4,7 @@ import com.ss.utopia.customer.dto.CustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.model.Customer;
+import com.ss.utopia.customer.model.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
 import java.net.URI;
 import java.util.List;
@@ -71,6 +72,11 @@ public class CustomerController {
   public ResponseEntity<String> delete(@PathVariable Long id) {
     service.removeById(id);
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/{customerId}/payment-method/{paymentId}")
+  public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId, @PathVariable Long paymentId) {
+    return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
   }
 
   @PostMapping(value = "/{id}/payment-method",
