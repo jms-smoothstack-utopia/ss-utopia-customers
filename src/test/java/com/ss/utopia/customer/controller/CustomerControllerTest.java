@@ -115,7 +115,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getAllCustomers_ReturnsListWith200StatusCode() throws Exception {
-    when(service.getAll()).thenReturn(List.of(validCustomer));
+    when(service.getAllCustomers()).thenReturn(List.of(validCustomer));
 
     var result = mvc
         .perform(get(CUSTOMER_ENDPOINT))
@@ -131,7 +131,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getAllCustomers_ReturnsEmptyListWith204StatusCodeIfNoCustomers() throws Exception {
-    when(service.getAll()).thenReturn(Collections.emptyList());
+    when(service.getAllCustomers()).thenReturn(Collections.emptyList());
 
     mvc
         .perform(
@@ -141,7 +141,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerById_ReturnsValidCustomerWith200StatusCode() throws Exception {
-    when(service.getById(validCustomer.getId())).thenReturn(validCustomer);
+    when(service.getCustomerById(validCustomer.getId())).thenReturn(validCustomer);
 
     var result = mvc
         .perform(
@@ -157,7 +157,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerById_Returns404OnInvalidId() throws Exception {
-    when(service.getById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
+    when(service.getCustomerById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
 
     mvc
         .perform(
@@ -167,7 +167,7 @@ class CustomerControllerTest {
 
   @Test
   void test_createNewCustomer_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
-    when(service.create(validDto)).thenReturn(validCustomer);
+    when(service.createNewCustomer(validDto)).thenReturn(validCustomer);
 
     var headerName = "Location";
     var headerVal = CUSTOMER_ENDPOINT + "/" + validCustomer.getId();
@@ -288,7 +288,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
-    when(service.update(anyLong(), any(CustomerDto.class)))
+    when(service.updateCustomer(anyLong(), any(CustomerDto.class)))
         .thenThrow(new NoSuchCustomerException(-1L));
 
     mvc
@@ -301,7 +301,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns409OnDuplicateEmail() throws Exception {
-    when(service.update(validCustomer.getId(), validDto))
+    when(service.updateCustomer(validCustomer.getId(), validDto))
         .thenThrow(new DuplicateEmailException(validDto.getEmail()));
 
     mvc
@@ -315,7 +315,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
-    when(service.update(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
+    when(service.updateCustomer(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
 
     mvc
         .perform(

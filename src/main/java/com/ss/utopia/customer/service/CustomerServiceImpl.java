@@ -23,6 +23,16 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   /**
+   * Gets all {@link Customer} records.
+   *
+   * @return a list of all customers.
+   */
+  @Override
+  public List<Customer> getAllCustomers() {
+    return repository.findAll();
+  }
+
+  /**
    * Gets a {@link Customer} record given an ID.
    *
    * @param id the ID of the customer.
@@ -30,19 +40,9 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws NoSuchCustomerException if a customer with the ID cannot be found.
    */
   @Override
-  public Customer getById(Long id) {
+  public Customer getCustomerById(Long id) {
     return repository.findById(id)
         .orElseThrow(() -> new NoSuchCustomerException(id));
-  }
-
-  /**
-   * Gets all {@link Customer} records.
-   *
-   * @return a list of all customers.
-   */
-  @Override
-  public List<Customer> getAll() {
-    return repository.findAll();
   }
 
   /**
@@ -55,7 +55,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws DuplicateEmailException if a record already exists with the given email.
    */
   @Override
-  public Customer create(@Valid CustomerDto customerDto) {
+  public Customer createNewCustomer(@Valid CustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
 
     repository.findByEmail(customer.getEmail())
@@ -72,7 +72,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @param id the ID of the customer to remove.
    */
   @Override
-  public void removeById(Long id) {
+  public void removeCustomerById(Long id) {
     repository.findById(id)
         .ifPresent(repository::delete);
   }
@@ -89,7 +89,7 @@ public class CustomerServiceImpl implements CustomerService {
    *                                 information.
    */
   @Override
-  public Customer update(Long customerId, @Valid CustomerDto customerDto) {
+  public Customer updateCustomer(Long customerId, @Valid CustomerDto customerDto) {
     var duplicateEmail = repository.findByEmail(customerDto.getEmail())
         .stream()
         .anyMatch(customer -> !customer.getId().equals(customerId));
@@ -98,7 +98,7 @@ public class CustomerServiceImpl implements CustomerService {
       throw new DuplicateEmailException(customerDto.getEmail());
     }
 
-    var oldValue = getById(customerId);
+    var oldValue = getCustomerById(customerId);
     var newValue = CustomerDtoMapper.map(customerDto);
     // set from old payment methods or it'll be erased
     newValue.setPaymentMethods(oldValue.getPaymentMethods());
@@ -140,7 +140,7 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
-    var customer = getById(customerId);
+    var customer = getCustomerById(customerId);
 
     var method = new PaymentMethod();
     method.setOwnerId(customer.getId());
@@ -174,7 +174,7 @@ public class CustomerServiceImpl implements CustomerService {
   public void updatePaymentMethod(Long customerId,
                                   Long paymentId,
                                   PaymentMethodDto paymentMethodDto) {
-    var customer = getById(customerId);
+    var customer = getCustomerById(customerId);
 
     customer.getPaymentMethods()
         .stream()
@@ -199,7 +199,7 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public void removePaymentMethod(Long customerId, Long paymentId) {
-    var customer = getById(customerId);
+    var customer = getCustomerById(customerId);
     customer.getPaymentMethods()
         .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
     repository.save(customer);

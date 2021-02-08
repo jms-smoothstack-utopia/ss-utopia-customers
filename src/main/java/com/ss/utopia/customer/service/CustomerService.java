@@ -9,15 +9,15 @@ import java.util.Optional;
 
 public interface CustomerService {
 
-  List<Customer> getAll();
+  List<Customer> getAllCustomers();
 
-  Customer getById(Long id);
+  Customer getCustomerById(Long id);
 
-  Customer create(CustomerDto customerDto);
+  Customer createNewCustomer(CustomerDto customerDto);
 
-  void removeById(Long id);
+  void removeCustomerById(Long id);
 
-  Customer update(Long customerId, CustomerDto customerDto);
+  Customer updateCustomer(Long customerId, CustomerDto customerDto);
 
   Long addPaymentMethod(Long id, PaymentMethodDto paymentMethodDto);
 

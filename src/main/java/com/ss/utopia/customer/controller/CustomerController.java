@@ -36,7 +36,7 @@ public class CustomerController {
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Customer>> getAllCustomers() {
     LOGGER.info("GET Customer all");
-    var customers = service.getAll();
+    var customers = service.getAllCustomers();
     if (customers.isEmpty()) {
       return ResponseEntity.noContent().build();
     }
@@ -46,13 +46,13 @@ public class CustomerController {
   @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
     LOGGER.info("GET Customer id=" + id);
-    return ResponseEntity.of(Optional.ofNullable(service.getById(id)));
+    return ResponseEntity.of(Optional.ofNullable(service.getCustomerById(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<URI> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("POST Customer");
-    var createdCustomer = service.create(customerDto);
+    var createdCustomer = service.createNewCustomer(customerDto);
     var uri = URI.create("/customer/" + createdCustomer.getId());
     return ResponseEntity.created(uri).build();
   }
@@ -64,14 +64,14 @@ public class CustomerController {
   public ResponseEntity<?> updateExistingCustomer(@PathVariable Long id,
                                                   @Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("PUT Customer id=" + id);
-    service.update(id, customerDto);
+    service.updateCustomer(id, customerDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
     LOGGER.info("DELETE id=" + id);
-    service.removeById(id);
+    service.removeCustomerById(id);
     return ResponseEntity.noContent().build();
   }
 
