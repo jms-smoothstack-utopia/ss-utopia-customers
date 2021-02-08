@@ -34,7 +34,7 @@ public class CustomerController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<List<Customer>> getAll() {
+  public ResponseEntity<List<Customer>> getAllCustomers() {
     LOGGER.info("GET Customer all");
     var customers = service.getAll();
     if (customers.isEmpty()) {
@@ -44,13 +44,13 @@ public class CustomerController {
   }
 
   @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Customer> getById(@PathVariable Long id) {
+  public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
     LOGGER.info("GET Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getById(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<URI> createNew(@Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<URI> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("POST Customer");
     var createdCustomer = service.create(customerDto);
     var uri = URI.create("/customer/" + createdCustomer.getId());
@@ -61,15 +61,15 @@ public class CustomerController {
   // Additionally, any field not present should not cause an error and should instead just not be modified.
   @PutMapping(value = "/{id}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateExisting(@PathVariable Long id,
-                                          @Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<?> updateExistingCustomer(@PathVariable Long id,
+                                                  @Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("PUT Customer id=" + id);
     service.update(id, customerDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> delete(@PathVariable Long id) {
+  public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
     LOGGER.info("DELETE id=" + id);
     service.removeById(id);
     return ResponseEntity.noContent().build();

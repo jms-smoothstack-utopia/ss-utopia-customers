@@ -93,7 +93,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getAll_ReturnsListWith200StatusCode() throws Exception {
+  void test_getAllCustomers_ReturnsListWith200StatusCode() throws Exception {
     when(service.getAll()).thenReturn(List.of(validCustomer));
 
     var result = mvc
@@ -109,7 +109,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getAll_ReturnsEmptyListWith204StatusCodeIfNoCustomers() throws Exception {
+  void test_getAllCustomers_ReturnsEmptyListWith204StatusCodeIfNoCustomers() throws Exception {
     when(service.getAll()).thenReturn(Collections.emptyList());
 
     mvc
@@ -119,7 +119,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getById_ReturnsValidCustomerWith200StatusCode() throws Exception {
+  void test_getCustomerById_ReturnsValidCustomerWith200StatusCode() throws Exception {
     when(service.getById(validCustomer.getId())).thenReturn(validCustomer);
 
     var result = mvc
@@ -135,7 +135,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getById_Returns404OnInvalidId() throws Exception {
+  void test_getCustomerById_Returns404OnInvalidId() throws Exception {
     when(service.getById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
 
     mvc
@@ -145,11 +145,11 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
+  void test_createNewCustomer_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
     when(service.create(validDto)).thenReturn(validCustomer);
 
     var headerName = "Location";
-    var headerVal = ENDPOINT + "/" +validCustomer.getId();
+    var headerVal = ENDPOINT + "/" + validCustomer.getId();
 
     mvc
         .perform(
@@ -169,7 +169,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidFirstName() {
+  void test_createNewCustomer_DoesNotAllowInvalidFirstName() {
     validDto.setFirstName(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -178,7 +178,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidLastName() {
+  void test_createNewCustomer_DoesNotAllowInvalidLastName() {
     validDto.setLastName(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -187,7 +187,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidEmail() {
+  void test_createNewCustomer_DoesNotAllowInvalidEmail() {
     validDto.setEmail(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -199,7 +199,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidAddrLine1() {
+  void test_createNewCustomer_DoesNotAllowInvalidAddrLine1() {
     validDto.setAddrLine1(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -208,7 +208,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidCity() {
+  void test_createNewCustomer_DoesNotAllowInvalidCity() {
     validDto.setCity(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -217,7 +217,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidState() {
+  void test_createNewCustomer_DoesNotAllowInvalidState() {
     validDto.setState(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -232,7 +232,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_createNew_DoesNotAllowInvalidZipcode() {
+  void test_createNewCustomer_DoesNotAllowInvalidZipcode() {
     validDto.setZipcode(null);
     assertFalse(noValidationViolations(validDto));
 
@@ -251,7 +251,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_updateExisting_Returns405OnMissingId() throws Exception {
+  void test_updateExistingCustomer_Returns405OnMissingId() throws Exception {
     mvc
         .perform(
             put(ENDPOINT))
@@ -259,7 +259,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_updateExisting_Returns404OnNonExistentCustomer() throws Exception {
+  void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
     when(service.update(anyLong(), any(CustomerDto.class)))
         .thenThrow(new NoSuchCustomerException(-1L));
 
@@ -272,7 +272,7 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_updateExisting_Returns200StatusCodeOnSuccess() throws Exception {
+  void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
     when(service.update(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
 
     mvc
@@ -284,10 +284,12 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_delete_Returns204StatusCode() throws Exception {
+  void test_deleteCustomer_Returns204StatusCode() throws Exception {
     mvc
         .perform(
             delete("/customer/1"))
         .andExpect(status().is(204));
   }
+
+
 }
