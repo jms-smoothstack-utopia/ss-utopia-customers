@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-class CustomerServiceImplTest {
+class CustomerServiceImplUnitTest {
 
   private static Customer firstCustomer;
   private static Customer secondCustomer;
@@ -157,5 +157,12 @@ class CustomerServiceImplTest {
     assertThrows(DuplicateEmailException.class, () -> service.createNewCustomer(dtoFirstCustomer));
   }
 
+  @Test
+  void test_updateCustomer_ThrowsDuplicateEmailExceptionOnDuplicateEmailRecord() {
+    when(repository.findByEmail(firstCustomer.getEmail()))
+        .thenThrow(new DuplicateEmailException(firstCustomer.getEmail()));
 
+    assertThrows(DuplicateEmailException.class,
+                 () -> service.updateCustomer(firstCustomer.getId(), dtoFirstCustomer));
+  }
 }
