@@ -89,7 +89,7 @@ public class CustomerController {
                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
     LOGGER.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
-    var uri = URI.create("/" + id + "/payment-method/" + paymentId);
+    var uri = URI.create("/customer/" + id + "/payment-method/" + paymentId);
     return ResponseEntity.created(uri).build();
   }
 

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -15,10 +16,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
+import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
+import com.ss.utopia.customer.model.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,13 +39,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @Profile("test")
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
 
-  public static final String ENDPOINT = "/customer";
+  public static final String CUSTOMER_ENDPOINT = "/customer";
+  public static final String DEFAULT_PAYMENT_ENDPOINT = "/customer/1/payment-method";
 
   private final CustomerService service = Mockito.mock(CustomerService.class);
   private final CustomerController controller = new CustomerController(service);
@@ -51,6 +58,8 @@ class CustomerControllerTest {
 
   private Customer validCustomer;
   private CustomerDto validDto;
+  private PaymentMethod validPaymentMethod;
+  private PaymentMethodDto validPaymentMethodDto;
 
   @BeforeEach
   void beforeEach() {
@@ -77,19 +86,31 @@ class CustomerControllerTest {
 
     // add addr and empty payment methods
     validCustomer.setAddresses(Set.of(validAddress));
-    validCustomer.setPaymentMethods(Collections.emptySet());
+
+    validPaymentMethod = PaymentMethod.builder()
+        .id(1L)
+        .ownerId(validCustomer.getId())
+        .accountNum("12345")
+        .notes("payment notes")
+        .build();
+
+    validCustomer.setPaymentMethods(Set.of(validPaymentMethod));
 
     // setup DTOs
-    validDto = new CustomerDto();
+    validDto = CustomerDto.builder()
+        .firstName(validCustomer.getFirstName())
+        .lastName(validCustomer.getLastName())
+        .email(validCustomer.getEmail())
+        .addrLine1(validAddress.getLine1())
+        .addrLine2(validAddress.getLine2())
+        .city(validAddress.getCity())
+        .state(validAddress.getState())
+        .zipcode(validAddress.getZipcode()).build();
 
-    validDto.setFirstName(validCustomer.getFirstName());
-    validDto.setLastName(validCustomer.getLastName());
-    validDto.setEmail(validCustomer.getEmail());
-    validDto.setAddrLine1(validAddress.getLine1());
-    validDto.setAddrLine2(validAddress.getLine2());
-    validDto.setCity(validAddress.getCity());
-    validDto.setState(validAddress.getState());
-    validDto.setZipcode(validAddress.getZipcode());
+    validPaymentMethodDto = PaymentMethodDto.builder()
+        .accountNum(validPaymentMethod.getAccountNum())
+        .notes(validPaymentMethod.getNotes())
+        .build();
   }
 
   @Test
@@ -97,7 +118,7 @@ class CustomerControllerTest {
     when(service.getAll()).thenReturn(List.of(validCustomer));
 
     var result = mvc
-        .perform(get(ENDPOINT))
+        .perform(get(CUSTOMER_ENDPOINT))
         .andExpect(status().is(200))
         .andReturn();
 
@@ -114,7 +135,7 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            get(ENDPOINT))
+            get(CUSTOMER_ENDPOINT))
         .andExpect(status().is(204));
   }
 
@@ -124,7 +145,7 @@ class CustomerControllerTest {
 
     var result = mvc
         .perform(
-            get(ENDPOINT + "/" + validCustomer.getId()))
+            get(CUSTOMER_ENDPOINT + "/" + validCustomer.getId()))
         .andExpect(status().is(200))
         .andReturn();
 
@@ -140,7 +161,7 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            get(ENDPOINT + "/-1"))
+            get(CUSTOMER_ENDPOINT + "/-1"))
         .andExpect(status().is(404));
   }
 
@@ -149,11 +170,11 @@ class CustomerControllerTest {
     when(service.create(validDto)).thenReturn(validCustomer);
 
     var headerName = "Location";
-    var headerVal = ENDPOINT + "/" + validCustomer.getId();
+    var headerVal = CUSTOMER_ENDPOINT + "/" + validCustomer.getId();
 
     mvc
         .perform(
-            post(ENDPOINT)
+            post(CUSTOMER_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(201))
@@ -165,6 +186,13 @@ class CustomerControllerTest {
     return Validation.buildDefaultValidatorFactory()
         .getValidator()
         .validate(customerDto)
+        .isEmpty();
+  }
+
+  boolean noValidationViolations(PaymentMethodDto paymentMethodDto) {
+    return Validation.buildDefaultValidatorFactory()
+        .getValidator()
+        .validate(paymentMethodDto)
         .isEmpty();
   }
 
@@ -254,7 +282,7 @@ class CustomerControllerTest {
   void test_updateExistingCustomer_Returns405OnMissingId() throws Exception {
     mvc
         .perform(
-            put(ENDPOINT))
+            put(CUSTOMER_ENDPOINT))
         .andExpect(status().is(405));
   }
 
@@ -265,11 +293,25 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            put("/customer/-1")
+            put(CUSTOMER_ENDPOINT + "/-1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(404));
   }
+
+  @Test
+  void test_updateExistingCustomer_Returns409OnDuplicateEmail() throws Exception {
+    when(service.update(validCustomer.getId(), validDto))
+        .thenThrow(new DuplicateEmailException(validDto.getEmail()));
+
+    mvc
+        .perform(
+            put(CUSTOMER_ENDPOINT + "/" + validCustomer.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validDto)))
+        .andExpect(status().is(409));
+  }
+
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
@@ -277,7 +319,7 @@ class CustomerControllerTest {
 
     mvc
         .perform(
-            put("/customer/1")
+            put(CUSTOMER_ENDPOINT + "/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(204));
@@ -287,9 +329,171 @@ class CustomerControllerTest {
   void test_deleteCustomer_Returns204StatusCode() throws Exception {
     mvc
         .perform(
-            delete("/customer/1"))
+            delete(CUSTOMER_ENDPOINT + "/1"))
         .andExpect(status().is(204));
   }
 
+  // util for converting from JSON to obj from result
+  PaymentMethod paymentMap(MvcResult result) throws Exception {
+    return jsonMapper.readValue(result.getResponse()
+                                    .getContentAsString(),
+                                PaymentMethod.class);
+  }
 
+  @Test
+  void test_getPaymentMethod_Returns200AndExpectedResultOnValidInput() throws Exception {
+    when(service.getPaymentMethod(validCustomer.getId(), validPaymentMethod.getId()))
+        .thenReturn(validPaymentMethod);
+
+    var result = mvc
+        .perform(
+            get(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId()))
+        .andExpect(status().is(200))
+        .andReturn();
+    var response = paymentMap(result);
+
+    assertEquals(validPaymentMethod, response);
+  }
+
+  @Test
+  void test_getPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
+    when(service.getPaymentMethod(anyLong(), anyLong()))
+        .thenThrow(new NoSuchCustomerException(-1L));
+
+    mvc
+        .perform(
+            get(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId()))
+        .andExpect(status().is(404));
+  }
+
+  @Test
+  void test_getPaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
+    when(service.getPaymentMethod(validCustomer.getId(), -1L))
+        .thenThrow(new NoSuchPaymentMethod(validCustomer.getId(), -1L));
+
+    mvc
+        .perform(
+            get(DEFAULT_PAYMENT_ENDPOINT + "/-1"))
+        .andExpect(status().is(404));
+  }
+
+  @Test
+  void test_addPaymentMethod_Returns201AndURIOnValidDto() throws Exception {
+    when(service.addPaymentMethod(validCustomer.getId(), validPaymentMethodDto))
+        .thenReturn(validPaymentMethod.getId());
+
+    var headerName = "Location";
+    var headerVal = DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId();
+
+    var result = mvc
+        .perform(
+            post(DEFAULT_PAYMENT_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validPaymentMethodDto)))
+        .andExpect(status().is(201))
+        .andExpect(header().string(headerName, headerVal))
+        .andReturn();
+
+    assertTrue(result.getResponse().getContentAsString().isEmpty());
+  }
+
+  @Test
+  void test_addPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
+    when(service.addPaymentMethod(anyLong(), any(PaymentMethodDto.class)))
+        .thenThrow(new NoSuchCustomerException(-1L));
+
+    var result = mvc
+        .perform(
+            post(DEFAULT_PAYMENT_ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validPaymentMethodDto)))
+        .andExpect(status().is(404))
+        .andReturn();
+
+    // should have a message
+    assertFalse(result.getResponse().getContentAsString().isBlank());
+  }
+
+  @Test
+  void test_addPaymentMethod_DoesNotAllowInvalidDto() {
+    validPaymentMethodDto.setAccountNum(null);
+    assertFalse(noValidationViolations(validPaymentMethodDto));
+
+    validPaymentMethodDto.setAccountNum("");
+    assertFalse(noValidationViolations(validPaymentMethodDto));
+  }
+
+  @Test
+  void test_updatePaymentMethod_Returns204AndNoBodyOnValidDto() throws Exception {
+
+    var result = mvc
+        .perform(
+            put(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validPaymentMethodDto)))
+        .andExpect(status().is(204))
+        .andReturn();
+
+    assertTrue(result.getResponse().getContentAsString().isEmpty());
+  }
+
+  @Test
+  void test_updatePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
+    doThrow(new NoSuchCustomerException(1L))
+        .when(service)
+        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+
+    var result = mvc
+        .perform(
+            put(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validPaymentMethodDto)))
+        .andExpect(status().is(404))
+        .andReturn();
+
+    assertFalse(result.getResponse().getContentAsString().isBlank());
+  }
+
+  @Test
+  void test_updatePaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
+    doThrow(new NoSuchPaymentMethod(1L, 1L))
+        .when(service)
+        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+
+    var result = mvc
+        .perform(
+            put(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonMapper.writeValueAsString(validPaymentMethodDto)))
+        .andExpect(status().is(404))
+        .andReturn();
+
+    assertFalse(result.getResponse().getContentAsString().isBlank());
+  }
+
+  @Test
+  void test_removePaymentMethod_Returns204OnSuccess() throws Exception {
+    var result = mvc
+        .perform(
+            delete(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId()))
+        .andExpect(status().is(204))
+        .andReturn();
+
+    assertTrue(result.getResponse().getContentAsString().isEmpty());
+  }
+
+  @Test
+  void test_removePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
+    doThrow(new NoSuchCustomerException(1L))
+        .when(service)
+        .removePaymentMethod(anyLong(), anyLong());
+
+    var result = mvc
+        .perform(
+            delete(DEFAULT_PAYMENT_ENDPOINT + "/" + validPaymentMethod.getId()))
+        .andExpect(status().is(404))
+        .andReturn();
+
+    assertFalse(result.getResponse().getContentAsString().isBlank());
+  }
 }
