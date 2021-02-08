@@ -37,10 +37,12 @@ public class CustomerServiceImpl implements CustomerService {
    *
    * @param id the ID of the customer.
    * @return the record with the given ID.
-   * @throws NoSuchCustomerException if a customer with the ID cannot be found.
+   * @throws IllegalArgumentException if id is null.
+   * @throws NoSuchCustomerException  if a customer with the ID cannot be found.
    */
   @Override
   public Customer getCustomerById(Long id) {
+    notNull(id);
     return repository.findById(id)
         .orElseThrow(() -> new NoSuchCustomerException(id));
   }
@@ -55,7 +57,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws DuplicateEmailException if a record already exists with the given email.
    */
   @Override
-  public Customer createNewCustomer(@Valid CustomerDto customerDto) {
+  public Customer createNewCustomer(CustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
 
     repository.findByEmail(customer.getEmail())
@@ -64,17 +66,6 @@ public class CustomerServiceImpl implements CustomerService {
         });
 
     return repository.save(customer);
-  }
-
-  /**
-   * Removes a {@link Customer} record given an ID.
-   *
-   * @param id the ID of the customer to remove.
-   */
-  @Override
-  public void removeCustomerById(Long id) {
-    repository.findById(id)
-        .ifPresent(repository::delete);
   }
 
   /**
@@ -90,6 +81,8 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public Customer updateCustomer(Long customerId, @Valid CustomerDto customerDto) {
+    notNull(customerId);
+
     var duplicateEmail = repository.findByEmail(customerDto.getEmail())
         .stream()
         .anyMatch(customer -> !customer.getId().equals(customerId));
@@ -107,6 +100,19 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   /**
+   * Removes a {@link Customer} record given an ID.
+   *
+   * @param id the ID of the customer to remove.
+   */
+  @Override
+  public void removeCustomerById(Long id) {
+    notNull(id);
+
+    repository.findById(id)
+        .ifPresent(repository::delete);
+  }
+
+  /**
    * Gets a {@link PaymentMethod} for a {@link Customer} given the customer and payment ID.
    *
    * @param customerId the customer ID.
@@ -119,6 +125,8 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public PaymentMethod getPaymentMethod(Long customerId, Long paymentId) {
+    notNull(customerId, paymentId);
+
     return repository.findById(customerId)
         .map(customer -> customer.getPaymentMethods()
             .stream()
@@ -140,6 +148,8 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
+    notNull(customerId);
+
     var customer = getCustomerById(customerId);
 
     var method = new PaymentMethod();
@@ -174,6 +184,8 @@ public class CustomerServiceImpl implements CustomerService {
   public void updatePaymentMethod(Long customerId,
                                   Long paymentId,
                                   PaymentMethodDto paymentMethodDto) {
+    notNull(customerId, paymentId);
+
     var customer = getCustomerById(customerId);
 
     customer.getPaymentMethods()
@@ -199,9 +211,24 @@ public class CustomerServiceImpl implements CustomerService {
    */
   @Override
   public void removePaymentMethod(Long customerId, Long paymentId) {
+    notNull(customerId, paymentId);
+
     var customer = getCustomerById(customerId);
     customer.getPaymentMethods()
         .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
     repository.save(customer);
+  }
+
+  /**
+   * Util method to check for null ID values.
+   *
+   * @param ids vararg ids to check.
+   */
+  private void notNull(Long... ids) {
+    for (var i : ids) {
+      if (i == null) {
+        throw new IllegalArgumentException("ID cannot be null.");
+      }
+    }
   }
 }
