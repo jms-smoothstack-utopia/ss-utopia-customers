@@ -7,7 +7,7 @@ public class DuplicateEmailException extends DuplicateKeyException {
   private final String email;
 
   public DuplicateEmailException(String email) {
-    super("A customer account with that email already exists.");
+    super("Duplicate Email: '" + email + "'");
     this.email = email;
   }
 

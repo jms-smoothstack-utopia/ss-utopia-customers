@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class ControllerAdvisor {
+public class ExceptionControllerAdvisor {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionControllerAdvisor.class);
 
   /**
    * Handles exceptions thrown on search returning no results.
@@ -23,6 +27,7 @@ public class ControllerAdvisor {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(NoSuchElementException.class)
   public Map<String, Object> handleNoSuchElementExceptions(NoSuchElementException ex) {
+    LOGGER.error(ex.getMessage());
     var response = new HashMap<String, Object>();
 
     response.put("error", ex.getMessage());
@@ -43,6 +48,7 @@ public class ControllerAdvisor {
   @ResponseStatus(HttpStatus.CONFLICT)
   @ExceptionHandler(DuplicateEmailException.class)
   public Map<String, Object> handleDuplicateEmailException(DuplicateEmailException ex) {
+    LOGGER.error(ex.getMessage());
     var response = new HashMap<String, Object>();
 
     response.put("error", ex.getMessage());
@@ -63,6 +69,8 @@ public class ControllerAdvisor {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public Map<String, Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    LOGGER.error(ex.getMessage());
+
     var response = new HashMap<String, Object>();
 
     response.put("error", "Invalid field(s) in request.");
@@ -85,9 +93,9 @@ public class ControllerAdvisor {
    */
   private String getErrorMessageOrDefault(FieldError error) {
     var msg = error.getDefaultMessage();
+    msg = msg == null || msg.isBlank() ? "Unknown validation failure." : msg;
 
-    return msg == null || msg.isBlank()
-        ? "Unknown validation failure."
-        : msg;
+    LOGGER.debug("Field" + error.getField() + " Message: " + msg);
+    return msg;
   }
 }

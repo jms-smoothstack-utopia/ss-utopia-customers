@@ -10,8 +10,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerServiceImplTest {
 
   @Autowired
@@ -38,8 +39,10 @@ class CustomerServiceImplTest {
                                    .build()))
         .build();
 
-    assertEquals(repository.findAll().size(), 0);
+    assertEquals(0, repository.findAll().size());
     repository.save(customer);
-    assertEquals(repository.findAll().size(), 1);
+    assertEquals(1, repository.findAll().size());
+    repository.deleteAll();
+    assertEquals(0, repository.findAll().size());
   }
 }

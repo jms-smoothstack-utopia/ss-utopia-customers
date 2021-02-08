@@ -26,8 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/customer")
 public class CustomerController {
 
-  //todo add logging
-  private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CustomerController.class);
   private final CustomerService service;
 
   public CustomerController(CustomerService customerService) {
@@ -36,6 +35,7 @@ public class CustomerController {
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<List<Customer>> getAll() {
+    LOGGER.info("GET Customer all");
     var customers = service.getAll();
     if (customers.isEmpty()) {
       return ResponseEntity.noContent().build();
@@ -45,11 +45,13 @@ public class CustomerController {
 
   @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<Customer> getById(@PathVariable Long id) {
+    LOGGER.info("GET Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getById(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<URI> createNew(@Valid @RequestBody CustomerDto customerDto) {
+    LOGGER.info("POST Customer");
     var createdCustomer = service.create(customerDto);
     var uri = URI.create("/customer/" + createdCustomer.getId());
     return ResponseEntity.created(uri).build();
@@ -61,12 +63,14 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExisting(@PathVariable Long id,
                                           @Valid @RequestBody CustomerDto customerDto) {
+    LOGGER.info("PUT Customer id=" + id);
     service.update(id, customerDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> delete(@PathVariable Long id) {
+    LOGGER.info("DELETE id=" + id);
     service.removeById(id);
     return ResponseEntity.noContent().build();
   }
@@ -75,6 +79,7 @@ public class CustomerController {
       produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId,
                                                         @PathVariable Long paymentId) {
+    LOGGER.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
   }
 
@@ -82,6 +87,7 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<URI> addPaymentMethod(@PathVariable Long id,
                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+    LOGGER.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
     var uri = URI.create("/" + id + "/payment-method/" + paymentId);
     return ResponseEntity.created(uri).build();
@@ -92,6 +98,7 @@ public class CustomerController {
   public ResponseEntity<?> updatePaymentMethod(@PathVariable Long customerId,
                                                @PathVariable Long paymentId,
                                                @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+    LOGGER.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     service.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
     return ResponseEntity.noContent().build();
   }
@@ -99,6 +106,7 @@ public class CustomerController {
   @DeleteMapping("/{customerId}/payment-method/{paymentId}")
   public ResponseEntity<?> removePaymentMethod(@PathVariable Long customerId,
                                                @PathVariable Long paymentId) {
+    LOGGER.info("DELETE PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     service.removePaymentMethod(customerId, paymentId);
     return ResponseEntity.noContent().build();
   }

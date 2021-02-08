@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.exception.ControllerAdvisor;
+import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.model.Address;
 import com.ss.utopia.customer.model.Customer;
@@ -46,7 +46,7 @@ class CustomerControllerTest {
   private final CustomerController controller = new CustomerController(service);
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
-      .setControllerAdvice(new ControllerAdvisor())
+      .setControllerAdvice(new ExceptionControllerAdvisor())
       .build();
 
   private Customer validCustomer;
