@@ -22,17 +22,38 @@ public class CustomerServiceImpl implements CustomerService {
     this.repository = repository;
   }
 
+  /**
+   * Gets a {@link Customer} record given an ID.
+   *
+   * @param id the ID of the customer.
+   * @return the record with the given ID.
+   * @throws NoSuchCustomerException if a customer with the ID cannot be found.
+   */
   @Override
   public Customer getById(Long id) {
     return repository.findById(id)
         .orElseThrow(() -> new NoSuchCustomerException(id));
   }
 
+  /**
+   * Gets all {@link Customer} records.
+   *
+   * @return a list of all customers.
+   */
   @Override
   public List<Customer> getAll() {
     return repository.findAll();
   }
 
+  /**
+   * Creates a new {@link Customer} record.
+   * <p>
+   * Does not allow creation if a record with an existing email is present.
+   *
+   * @param customerDto a valid {@link CustomerDto}.
+   * @return the created customer record.
+   * @throws DuplicateEmailException if a record already exists with the given email.
+   */
   @Override
   public Customer create(@Valid CustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
@@ -45,6 +66,11 @@ public class CustomerServiceImpl implements CustomerService {
     return repository.save(customer);
   }
 
+  /**
+   * Removes a {@link Customer} record given an ID.
+   *
+   * @param id the ID of the customer to remove.
+   */
   @Override
   public void removeById(Long id) {
     repository.findById(id)
@@ -52,17 +78,26 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   /**
-   * Update an existing {@link Customer} account.
+   * Updates an existing {@link Customer} account.
    * <p>
    * TODO: Update to allow multiple addr fields
    *
    * @param customerDto The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
-   * @throws IllegalStateException   if customer ID is null or less than 1.
    * @throws NoSuchCustomerException if no Customer found with the ID.
+   * @throws DuplicateEmailException if a different record exists with the same email as the update
+   *                                 information.
    */
   @Override
   public Customer update(Long customerId, @Valid CustomerDto customerDto) {
+    var duplicateEmail = repository.findByEmail(customerDto.getEmail())
+        .stream()
+        .anyMatch(customer -> !customer.getId().equals(customerId));
+
+    if (duplicateEmail) {
+      throw new DuplicateEmailException(customerDto.getEmail());
+    }
+
     var oldValue = getById(customerId);
     var newValue = CustomerDtoMapper.map(customerDto);
     // set from old payment methods or it'll be erased
@@ -71,6 +106,17 @@ public class CustomerServiceImpl implements CustomerService {
     return repository.save(newValue);
   }
 
+  /**
+   * Gets a {@link PaymentMethod} for a {@link Customer} given the customer and payment ID.
+   *
+   * @param customerId the customer ID.
+   * @param paymentId  the payment ID.
+   * @return the found payment method record.
+   * @throws NoSuchCustomerException if no customer record found with the given ID.
+   * @throws NoSuchPaymentMethod     if no payment method record found with the given ID or if
+   *                                 payment method ID does not belong to the given customer
+   *                                 record.
+   */
   @Override
   public PaymentMethod getPaymentMethod(Long customerId, Long paymentId) {
     return repository.findById(customerId)
@@ -84,6 +130,14 @@ public class CustomerServiceImpl implements CustomerService {
         .orElseThrow(() -> new NoSuchCustomerException(customerId));
   }
 
+  /**
+   * Creates a new {@link PaymentMethod} record for a {@link Customer}.
+   *
+   * @param customerId       the customer ID for which the payment method belongs.
+   * @param paymentMethodDto a valid {@link PaymentMethodDto}.
+   * @return the created record.
+   * @throws NoSuchCustomerException if no customer record found with the given ID.
+   */
   @Override
   public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
     var customer = getById(customerId);
@@ -105,6 +159,17 @@ public class CustomerServiceImpl implements CustomerService {
         .orElseThrow();
   }
 
+  /**
+   * Updates a {@link PaymentMethod} record for a {@link Customer}.
+   *
+   * @param customerId       the customer ID for which the payment method belongs.
+   * @param paymentId        the payment method ID.
+   * @param paymentMethodDto a valid {@link PaymentMethodDto}.
+   * @throws NoSuchCustomerException if no customer record found with the given ID.
+   * @throws NoSuchPaymentMethod     if no payment method record found with the given ID or if
+   *                                 payment method ID does not belong to the given customer
+   *                                 record.
+   */
   @Override
   public void updatePaymentMethod(Long customerId,
                                   Long paymentId,
@@ -125,6 +190,13 @@ public class CustomerServiceImpl implements CustomerService {
                          });
   }
 
+  /**
+   * Deletes an existing {@link PaymentMethod} from a {@link Customer} if present.
+   *
+   * @param customerId the customer ID for which the payment method belongs.
+   * @param paymentId  the payment method ID.
+   * @throws NoSuchCustomerException if no customer record found with the given ID.
+   */
   @Override
   public void removePaymentMethod(Long customerId, Long paymentId) {
     var customer = getById(customerId);
