@@ -33,7 +33,7 @@ public class CustomerController {
     this.service = customerService;
   }
 
-  @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<List<Customer>> getAllCustomers() {
     LOGGER.info("GET Customer all");
     var customers = service.getAllCustomers();
@@ -43,7 +43,7 @@ public class CustomerController {
     return ResponseEntity.ok(customers);
   }
 
-  @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
     LOGGER.info("GET Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerById(id)));
@@ -76,7 +76,7 @@ public class CustomerController {
   }
 
   @GetMapping(value = "/{customerId}/payment-method/{paymentId}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+      produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId,
                                                         @PathVariable Long paymentId) {
     LOGGER.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
