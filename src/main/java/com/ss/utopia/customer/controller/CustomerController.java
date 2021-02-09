@@ -23,8 +23,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/customer")
+@RequestMapping("/customers")
 public class CustomerController {
+
+  private static final String MAPPING = "/customers";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CustomerController.class);
   private final CustomerService service;
@@ -53,7 +55,7 @@ public class CustomerController {
   public ResponseEntity<URI> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("POST Customer");
     var createdCustomer = service.createNewCustomer(customerDto);
-    var uri = URI.create("/customer/" + createdCustomer.getId());
+    var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
     return ResponseEntity.created(uri).build();
   }
 
@@ -89,7 +91,7 @@ public class CustomerController {
                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
     LOGGER.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
-    var uri = URI.create("/customer/" + id + "/payment-method/" + paymentId);
+    var uri = URI.create(MAPPING + "/" + id + "/payment-method/" + paymentId);
     return ResponseEntity.created(uri).build();
   }
 

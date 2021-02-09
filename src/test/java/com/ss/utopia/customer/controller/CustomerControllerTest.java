@@ -46,8 +46,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
 
-  public static final String CUSTOMER_ENDPOINT = "/customer";
-  public static final String DEFAULT_PAYMENT_ENDPOINT = "/customer/1/payment-method";
+  public static final String CUSTOMER_ENDPOINT = "/customers";
+  public static final String DEFAULT_PAYMENT_ENDPOINT = CUSTOMER_ENDPOINT + "/1/payment-method";
 
   private final CustomerService service = Mockito.mock(CustomerService.class);
   private final CustomerController controller = new CustomerController(service);
