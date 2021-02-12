@@ -1,6 +1,6 @@
 package com.ss.utopia.customer.repository;
 
-import com.ss.utopia.customer.model.Customer;
+import com.ss.utopia.customer.entity.Customer;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

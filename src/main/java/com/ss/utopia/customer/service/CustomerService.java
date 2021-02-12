@@ -1,11 +1,10 @@
 package com.ss.utopia.customer.service;
 
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
-import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.PaymentMethod;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.customer.entity.PaymentMethod;
+import com.ss.utopia.lib.dto.CustomerDto;
+import com.ss.utopia.lib.dto.PaymentMethodDto;
 import java.util.List;
-import java.util.Optional;
 
 public interface CustomerService {
 

@@ -3,8 +3,8 @@ package com.ss.utopia.customer.exception;
 import java.util.NoSuchElementException;
 
 /**
- * Exception to be thrown when a {@link com.ss.utopia.customer.model.PaymentMethod} cannot be
- * located or does not belong to the given {@link com.ss.utopia.customer.model.Customer}.
+ * Exception to be thrown when a {@link com.ss.utopia.customer.entity.PaymentMethod} cannot be
+ * located or does not belong to the given {@link com.ss.utopia.customer.entity.Customer}.
  * <p>
  * Offending IDs can be retrieved with {@link #getCustomerId()} and {@link #getPaymentId()}.
  */

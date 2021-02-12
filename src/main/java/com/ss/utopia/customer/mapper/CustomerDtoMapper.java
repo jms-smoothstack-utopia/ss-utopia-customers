@@ -1,8 +1,8 @@
 package com.ss.utopia.customer.mapper;
 
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.model.Address;
-import com.ss.utopia.customer.model.Customer;
+import com.ss.utopia.customer.entity.Address;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.lib.dto.CustomerDto;
 import java.util.Collections;
 import java.util.Set;
 

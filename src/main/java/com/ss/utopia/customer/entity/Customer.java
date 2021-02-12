@@ -1,4 +1,4 @@
-package com.ss.utopia.customer.model;
+package com.ss.utopia.customer.entity;
 
 import java.util.Set;
 import javax.persistence.CascadeType;

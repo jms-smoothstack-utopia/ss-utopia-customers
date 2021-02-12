@@ -3,7 +3,7 @@ package com.ss.utopia.customer.exception;
 import java.util.NoSuchElementException;
 
 /**
- * To be thrown when a {@link com.ss.utopia.customer.model.Customer} cannot be found.
+ * To be thrown when a {@link com.ss.utopia.customer.entity.Customer} cannot be found.
  * <p>
  * Contains the offending ID that can be retrieved with {@link #getCustomerId()}.
  */

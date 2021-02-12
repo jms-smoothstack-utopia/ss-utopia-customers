@@ -6,12 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.lib.dto.CustomerDto;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
-import com.ss.utopia.customer.model.Address;
-import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.PaymentMethod;
+import com.ss.utopia.customer.entity.Address;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;

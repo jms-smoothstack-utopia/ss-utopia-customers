@@ -15,15 +15,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.lib.dto.CustomerDto;
+import com.ss.utopia.lib.dto.PaymentMethodDto;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
-import com.ss.utopia.customer.model.Address;
-import com.ss.utopia.customer.model.Customer;
-import com.ss.utopia.customer.model.PaymentMethod;
+import com.ss.utopia.customer.entity.Address;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
 import java.util.Arrays;
 import java.util.Collections;
