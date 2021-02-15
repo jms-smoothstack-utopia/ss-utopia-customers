@@ -53,11 +53,11 @@ public class CustomerController {
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<URI> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("POST Customer");
     var createdCustomer = service.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
-    return ResponseEntity.created(uri).build();
+    return ResponseEntity.created(uri).body(createdCustomer);
   }
 
   //todo DTO should be updated to allow multiple addresses (or a new one created).
@@ -88,7 +88,7 @@ public class CustomerController {
 
   @PostMapping(value = "/{id}/payment-method",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<URI> addPaymentMethod(@PathVariable Long id,
+  public ResponseEntity<?> addPaymentMethod(@PathVariable Long id,
                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
     LOGGER.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
