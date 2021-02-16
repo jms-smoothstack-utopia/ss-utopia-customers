@@ -15,8 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ss.utopia.lib.dto.CustomerDto;
-import com.ss.utopia.lib.dto.PaymentMethodDto;
+import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
