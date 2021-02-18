@@ -138,6 +138,11 @@ public class CustomerServiceImpl implements CustomerService {
         .orElseThrow(() -> new NoSuchCustomerException(customerId));
   }
 
+  @Override
+  public Integer getCustomerLoyaltyPoints(Long id) {
+    return getCustomerById(id).getLoyaltyPoints();
+  }
+
   /**
    * Creates a new {@link PaymentMethod} record for a {@link Customer}.
    *

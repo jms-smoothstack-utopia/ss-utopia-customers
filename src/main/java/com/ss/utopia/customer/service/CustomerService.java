@@ -25,4 +25,6 @@ public interface CustomerService {
   void removePaymentMethod(Long customerId, Long paymentId);
 
   PaymentMethod getPaymentMethod(Long customerId, Long paymentId);
+
+  Integer getCustomerLoyaltyPoints(Long id);
 }
