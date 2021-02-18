@@ -74,6 +74,9 @@ class CustomerControllerTest {
     validCustomer.setLastName("Doe");
     validCustomer.setEmail("test@test.com");
 
+    //SSUTO-13 - View their Loyalty Points
+    validCustomer.setLoyaltyPoints(3);
+
     // setup Address
     Address validAddress = new Address();
     validAddress.setCardinality(1);
@@ -162,6 +165,33 @@ class CustomerControllerTest {
     mvc
         .perform(
             get(CUSTOMER_ENDPOINT + "/-1"))
+        .andExpect(status().is(404));
+  }
+
+  //SSUTO-13
+  @Test
+  void test_getCustomerLoyaltyPoints_ReturnsValidCustomerLoyaltyPointsWith200StatusCode() throws Exception{
+    when(service.getCustomerLoyaltyPoints(validCustomer.getId())).thenReturn(validCustomer.getLoyaltyPoints());
+
+    var result = mvc
+        .perform(
+            get(CUSTOMER_ENDPOINT + "/loyalty/" + validCustomer.getId()))
+        .andExpect(status().is(200))
+        .andReturn();
+
+    var response = jsonMapper
+        .readValue(result.getResponse().getContentAsString(), Integer.class);
+
+    assertEquals(validCustomer.getLoyaltyPoints(), response);
+  }
+
+  @Test
+  void test_getCustomerLoyaltyPoints_Returns404StatusCode() throws Exception{
+    when(service.getCustomerLoyaltyPoints(-1l)).thenThrow(new NoSuchCustomerException(-1L));
+
+    mvc
+        .perform(
+            get(CUSTOMER_ENDPOINT + "/loyalty/" + "/-1"))
         .andExpect(status().is(404));
   }
 

@@ -52,6 +52,13 @@ public class CustomerController {
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerById(id)));
   }
 
+  @GetMapping(value = "/loyalty/{id}", produces = {MediaType.APPLICATION_JSON_VALUE,
+      MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable Long id) {
+    LOGGER.info("GET Customer Loyalty Points when Customer id=" + id);
+    return ResponseEntity.of(Optional.ofNullable(service.getCustomerLoyaltyPoints(id)));
+  }
+
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
     LOGGER.info("POST Customer");

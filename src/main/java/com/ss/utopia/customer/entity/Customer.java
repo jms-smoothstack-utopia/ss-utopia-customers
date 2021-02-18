@@ -31,6 +31,8 @@ public class Customer {
 
   private String lastName;
 
+  private Integer loyaltyPoints = 0;
+
   @Column(unique = true)
   private String email;
 

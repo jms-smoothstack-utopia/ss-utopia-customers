@@ -21,6 +21,8 @@ public class CustomerDto {
   @NotBlank(message = "Last name is mandatory")
   private String lastName;
 
+  private Integer loyaltyPoints;
+
   @NotBlank
   @Email(message = "Email is invalid")
   private String email;

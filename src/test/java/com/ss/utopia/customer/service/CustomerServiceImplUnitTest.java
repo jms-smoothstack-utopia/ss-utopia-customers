@@ -38,6 +38,7 @@ class CustomerServiceImplUnitTest {
         .firstName("John")
         .lastName("Smith")
         .email("john_smith@test.com")
+        .loyaltyPoints(7)
         .addresses(Set.of(
             Address.builder()
                 .id(1L)
@@ -60,6 +61,7 @@ class CustomerServiceImplUnitTest {
         .firstName(firstCustomer.getFirstName())
         .lastName(firstCustomer.getLastName())
         .email(firstCustomer.getEmail())
+        .loyaltyPoints(firstCustomer.getLoyaltyPoints())
         .addrLine1("123 Main St")
         .addrLine2("Apt #5")
         .city("Atlanta")
@@ -72,6 +74,7 @@ class CustomerServiceImplUnitTest {
         .firstName("Jane")
         .lastName("Doe")
         .email("jane_doe@test.com")
+        .loyaltyPoints(4)
         .addresses(Set.of(
             Address.builder()
                 .id(2L)
@@ -94,6 +97,7 @@ class CustomerServiceImplUnitTest {
         .firstName(secondCustomer.getFirstName())
         .lastName(secondCustomer.getLastName())
         .email(secondCustomer.getEmail())
+        .loyaltyPoints(secondCustomer.getLoyaltyPoints())
         .addrLine1("456 Strawberry Ln")
         .addrLine2(null)
         .city("Las Vegas")
@@ -138,6 +142,24 @@ class CustomerServiceImplUnitTest {
   @Test
   void test_getCustomerById_ThrowsIllegalArgumentExceptionOnNullId() {
     assertThrows(IllegalArgumentException.class, () -> service.getCustomerById(null));
+  }
+
+  @Test
+  void test_getCustomerLoyaltyPointsById_ReturnsCustomerWithExpectedValuesOnSuccess(){
+    when(repository.findById(firstCustomer.getId())).thenReturn(Optional.of(firstCustomer));
+    var result = service.getCustomerLoyaltyPoints(firstCustomer.getId());
+    assertEquals(firstCustomer.getLoyaltyPoints(), result);
+
+    when(repository.findById(secondCustomer.getId())).thenReturn(Optional.of(secondCustomer));
+    result = service.getCustomerLoyaltyPoints(secondCustomer.getId());
+    assertEquals(secondCustomer.getLoyaltyPoints(), result);
+  }
+
+  @Test
+  void test_getCustomerLoyaltyPointsById_ThrowsNoSuchCustomerExceptionOnInvalidId() {
+    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(-1L));
+    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(3L));
+    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(0L));
   }
 
   @Test
