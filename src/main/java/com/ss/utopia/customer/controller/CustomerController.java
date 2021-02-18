@@ -1,10 +1,10 @@
 package com.ss.utopia.customer.controller;
 
-import com.ss.utopia.customer.dto.CreateCustomerRecordDto;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import java.net.URI;
 import java.util.List;
@@ -62,7 +62,7 @@ public class CustomerController {
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateCustomerRecordDto customerDto) {
+  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateCustomerDto customerDto) {
     LOGGER.info("POST Customer");
     var createdCustomer = service.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
@@ -74,9 +74,9 @@ public class CustomerController {
   @PutMapping(value = "/{id}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExistingCustomer(@PathVariable UUID id,
-                                                  @Valid @RequestBody CustomerDto customerDto) {
+                                                  @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
     LOGGER.info("PUT Customer id=" + id);
-    service.updateCustomer(id, customerDto);
+    service.updateCustomer(id, updateCustomerDto);
     return ResponseEntity.noContent().build();
   }
 

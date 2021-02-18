@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CustomerDto {
+public class UpdateCustomerDto {
 
   @NotBlank(message = "First name is mandatory")
   private String firstName;

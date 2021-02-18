@@ -15,8 +15,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ss.utopia.customer.dto.CreateCustomerRecordDto;
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
@@ -62,8 +62,8 @@ class CustomerControllerTest {
       .build();
 
   private Customer validCustomer;
-  private CustomerDto validDto;
-  private CreateCustomerRecordDto validCreateCustomerRecordDto;
+  private UpdateCustomerDto validDto;
+  private CreateCustomerDto validCreateCustomerDto;
   private PaymentMethod validPaymentMethod;
   private PaymentMethodDto validPaymentMethodDto;
 
@@ -107,7 +107,7 @@ class CustomerControllerTest {
     validCustomer.setPaymentMethods(Set.of(validPaymentMethod));
 
     // setup DTOs
-    validDto = CustomerDto.builder()
+    validDto = UpdateCustomerDto.builder()
         .firstName(validCustomer.getFirstName())
         .lastName(validCustomer.getLastName())
         .email(validCustomer.getEmail())
@@ -122,7 +122,7 @@ class CustomerControllerTest {
         .notes(validPaymentMethod.getNotes())
         .build();
 
-    validCreateCustomerRecordDto = CreateCustomerRecordDto.builder()
+    validCreateCustomerDto = CreateCustomerDto.builder()
         .id(validCustomerId)
         .firstName(validCustomer.getFirstName())
         .lastName(validCustomer.getLastName())
@@ -221,7 +221,7 @@ class CustomerControllerTest {
 
   @Test
   void test_createNewCustomer_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
-    when(service.createNewCustomer(validCreateCustomerRecordDto))
+    when(service.createNewCustomer(validCreateCustomerDto))
         .thenReturn(validCustomer);
 
     var headerName = "Location";
@@ -231,16 +231,16 @@ class CustomerControllerTest {
         .perform(
             post(CUSTOMER_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonMapper.writeValueAsString(validCreateCustomerRecordDto)))
+                .content(jsonMapper.writeValueAsString(validCreateCustomerDto)))
         .andExpect(status().is(201))
         .andExpect(header().string(headerName, headerVal));
   }
 
   //util
-  boolean noValidationViolations(CustomerDto customerDto) {
+  boolean noValidationViolations(UpdateCustomerDto updateCustomerDto) {
     return Validation.buildDefaultValidatorFactory()
         .getValidator()
-        .validate(customerDto)
+        .validate(updateCustomerDto)
         .isEmpty();
   }
 
@@ -344,7 +344,7 @@ class CustomerControllerTest {
   @Test
   void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.updateCustomer(any(UUID.class), any(CustomerDto.class)))
+    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class)))
         .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
@@ -371,7 +371,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
-    when(service.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(validCustomer);
+    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class))).thenReturn(validCustomer);
 
     mvc
         .perform(

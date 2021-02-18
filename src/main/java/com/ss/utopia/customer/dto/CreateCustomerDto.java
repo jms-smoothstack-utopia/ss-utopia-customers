@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CreateCustomerRecordDto {
+public class CreateCustomerDto {
 
   @NotNull
   private UUID id;

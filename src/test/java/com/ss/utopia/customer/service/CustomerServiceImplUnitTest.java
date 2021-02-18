@@ -6,13 +6,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.ss.utopia.customer.dto.CreateCustomerRecordDto;
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
-import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +28,8 @@ class CustomerServiceImplUnitTest {
   private final static UUID secondCustomerId = UUID.randomUUID();
   private static Customer firstCustomer;
   private static Customer secondCustomer;
-  private static CreateCustomerRecordDto dtoFirstCustomer;
-  private static CustomerDto dtoSecondCustomer;
+  private static CreateCustomerDto dtoFirstCustomer;
+  private static UpdateCustomerDto dtoSecondCustomer;
 
   private final CustomerRepository repository = Mockito.mock(CustomerRepository.class);
   private final CustomerService service = new CustomerServiceImpl(repository);
@@ -61,7 +60,7 @@ class CustomerServiceImplUnitTest {
                 .build()))
         .build();
 
-    dtoFirstCustomer = CreateCustomerRecordDto.builder()
+    dtoFirstCustomer = CreateCustomerDto.builder()
         .firstName(firstCustomer.getFirstName())
         .lastName(firstCustomer.getLastName())
         .email(firstCustomer.getEmail())
@@ -96,7 +95,7 @@ class CustomerServiceImplUnitTest {
                 .build()))
         .build();
 
-    dtoSecondCustomer = CustomerDto.builder()
+    dtoSecondCustomer = UpdateCustomerDto.builder()
         .firstName(secondCustomer.getFirstName())
         .lastName(secondCustomer.getLastName())
         .email(secondCustomer.getEmail())
@@ -198,7 +197,7 @@ class CustomerServiceImplUnitTest {
         .thenThrow(new DuplicateEmailException(firstCustomer.getEmail()));
 
     assertThrows(DuplicateEmailException.class,
-                 () -> service.createNewCustomer(CreateCustomerRecordDto.builder()
+                 () -> service.createNewCustomer(CreateCustomerDto.builder()
                                                      .email(firstCustomer.getEmail())
                                                      .build()));
   }
