@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.dto;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -21,6 +22,7 @@ public class CustomerDto {
   @NotBlank(message = "Last name is mandatory")
   private String lastName;
 
+  @Min(0)
   private Integer loyaltyPoints;
 
   @NotBlank

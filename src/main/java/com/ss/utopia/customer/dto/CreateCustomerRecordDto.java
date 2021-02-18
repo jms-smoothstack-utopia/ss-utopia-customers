@@ -38,6 +38,7 @@ public class CreateCustomerRecordDto {
   private String addrLine1;
 
   private String addrLine2;
+
   @NotBlank(message = "City is mandatory")
   private String city;
 

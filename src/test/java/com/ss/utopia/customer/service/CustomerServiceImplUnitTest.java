@@ -6,16 +6,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.ss.utopia.customer.dto.CreateCustomerRecordDto;
 import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.exception.DuplicateEmailException;
-import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
+import com.ss.utopia.customer.exception.DuplicateEmailException;
+import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,9 +25,11 @@ import org.mockito.Mockito;
 
 class CustomerServiceImplUnitTest {
 
+  private final static UUID firstCustomerId = UUID.randomUUID();
+  private final static UUID secondCustomerId = UUID.randomUUID();
   private static Customer firstCustomer;
   private static Customer secondCustomer;
-  private static CustomerDto dtoFirstCustomer;
+  private static CreateCustomerRecordDto dtoFirstCustomer;
   private static CustomerDto dtoSecondCustomer;
 
   private final CustomerRepository repository = Mockito.mock(CustomerRepository.class);
@@ -34,7 +38,7 @@ class CustomerServiceImplUnitTest {
   @BeforeAll
   static void beforeAll() {
     firstCustomer = Customer.builder()
-        .id(1L)
+        .id(firstCustomerId)
         .firstName("John")
         .lastName("Smith")
         .email("john_smith@test.com")
@@ -51,17 +55,16 @@ class CustomerServiceImplUnitTest {
         .paymentMethods(Set.of(
             PaymentMethod.builder()
                 .id(1L)
-                .ownerId(1L)
+                .ownerId(firstCustomerId)
                 .accountNum("123456789")
                 .notes("primary method")
                 .build()))
         .build();
 
-    dtoFirstCustomer = CustomerDto.builder()
+    dtoFirstCustomer = CreateCustomerRecordDto.builder()
         .firstName(firstCustomer.getFirstName())
         .lastName(firstCustomer.getLastName())
         .email(firstCustomer.getEmail())
-        .loyaltyPoints(firstCustomer.getLoyaltyPoints())
         .addrLine1("123 Main St")
         .addrLine2("Apt #5")
         .city("Atlanta")
@@ -70,7 +73,7 @@ class CustomerServiceImplUnitTest {
         .build();
 
     secondCustomer = Customer.builder()
-        .id(2L)
+        .id(secondCustomerId)
         .firstName("Jane")
         .lastName("Doe")
         .email("jane_doe@test.com")
@@ -87,7 +90,7 @@ class CustomerServiceImplUnitTest {
         .paymentMethods(Set.of(
             PaymentMethod.builder()
                 .id(2L)
-                .ownerId(2L)
+                .ownerId(secondCustomerId)
                 .accountNum("98765431")
                 .notes(null)
                 .build()))
@@ -133,10 +136,19 @@ class CustomerServiceImplUnitTest {
   }
 
   @Test
-  void test_getCustomerById_ThrowsNoSuchCustomerExceptionOnInvalidId() {
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(-1L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(3L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(0L));
+  void test_getCustomerById_ThrowsIllegalArgumentExceptionOnInvalidId() {
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(null));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(UUID.fromString("")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(UUID.fromString("asdfasdfasdfasdf")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(UUID.fromString("1")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(UUID.fromString("-1")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerById(UUID.fromString("0")));
   }
 
   @Test
@@ -145,7 +157,7 @@ class CustomerServiceImplUnitTest {
   }
 
   @Test
-  void test_getCustomerLoyaltyPointsById_ReturnsCustomerWithExpectedValuesOnSuccess(){
+  void test_getCustomerLoyaltyPointsById_ReturnsCustomerWithExpectedValuesOnSuccess() {
     when(repository.findById(firstCustomer.getId())).thenReturn(Optional.of(firstCustomer));
     var result = service.getCustomerLoyaltyPoints(firstCustomer.getId());
     assertEquals(firstCustomer.getLoyaltyPoints(), result);
@@ -156,10 +168,19 @@ class CustomerServiceImplUnitTest {
   }
 
   @Test
-  void test_getCustomerLoyaltyPointsById_ThrowsNoSuchCustomerExceptionOnInvalidId() {
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(-1L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(3L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(0L));
+  void test_getCustomerLoyaltyPointsById_ThrowsIllegalArgumentExceptionOnInvalidId() {
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(null));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(UUID.fromString("")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(UUID.fromString("asdfasdfasdfasdf")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(UUID.fromString("1")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(UUID.fromString("-1")));
+    assertThrows(IllegalArgumentException.class,
+                 () -> service.getCustomerLoyaltyPoints(UUID.fromString("0")));
   }
 
   @Test
@@ -176,15 +197,18 @@ class CustomerServiceImplUnitTest {
     when(repository.findByEmail(firstCustomer.getEmail()))
         .thenThrow(new DuplicateEmailException(firstCustomer.getEmail()));
 
-    assertThrows(DuplicateEmailException.class, () -> service.createNewCustomer(dtoFirstCustomer));
+    assertThrows(DuplicateEmailException.class,
+                 () -> service.createNewCustomer(CreateCustomerRecordDto.builder()
+                                                     .email(firstCustomer.getEmail())
+                                                     .build()));
   }
 
   @Test
   void test_updateCustomer_ThrowsDuplicateEmailExceptionOnDuplicateEmailRecord() {
-    when(repository.findByEmail(firstCustomer.getEmail()))
-        .thenThrow(new DuplicateEmailException(firstCustomer.getEmail()));
+    when(repository.findByEmail(secondCustomer.getEmail()))
+        .thenThrow(new DuplicateEmailException(secondCustomer.getEmail()));
 
     assertThrows(DuplicateEmailException.class,
-                 () -> service.updateCustomer(firstCustomer.getId(), dtoFirstCustomer));
+                 () -> service.updateCustomer(secondCustomer.getId(), dtoSecondCustomer));
   }
 }
