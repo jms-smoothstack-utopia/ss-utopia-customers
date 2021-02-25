@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.UUID;
 import javax.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +69,7 @@ class CustomerControllerTest {
     // setup Customer objs
     validCustomer = new Customer();
 
-    validCustomer.setId(1L);
+    validCustomer.setId(UUID.randomUUID());
     validCustomer.setFirstName("John");
 
     validCustomer.setLastName("Doe");
@@ -160,11 +161,12 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerById_Returns404OnInvalidId() throws Exception {
-    when(service.getCustomerById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
+    when(service.getCustomerById(UUID.fromString("00000000-0000-0000-0000-000000000000")))
+    		.thenThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")));
 
     mvc
         .perform(
-            get(CUSTOMER_ENDPOINT + "/-1"))
+            get(CUSTOMER_ENDPOINT + "00000000-0000-0000-0000-000000000000"))
         .andExpect(status().is(404));
   }
 
@@ -187,11 +189,12 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerLoyaltyPoints_Returns404StatusCode() throws Exception{
-    when(service.getCustomerLoyaltyPoints(-1l)).thenThrow(new NoSuchCustomerException(-1L));
+    when(service.getCustomerLoyaltyPoints(UUID.fromString("00000000-0000-0000-0000-000000000000")))
+    	.thenThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")));
 
     mvc
         .perform(
-            get(CUSTOMER_ENDPOINT + "/loyalty/" + "/-1"))
+            get(CUSTOMER_ENDPOINT + "/loyalty/" + "00000000-0000-0000-0000-000000000000"))
         .andExpect(status().is(404));
   }
 
@@ -318,12 +321,12 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
-    when(service.updateCustomer(anyLong(), any(CustomerDto.class)))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    when(service.updateCustomer(any(UUID.class), any(CustomerDto.class)))
+        .thenThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")));
 
     mvc
         .perform(
-            put(CUSTOMER_ENDPOINT + "/-1")
+            put(CUSTOMER_ENDPOINT + "00000000-0000-0000-0000-000000000000")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(404));
@@ -345,11 +348,11 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
-    when(service.updateCustomer(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
+    when(service.updateCustomer(any(UUID.class), any(CustomerDto.class))).thenReturn(validCustomer);
 
     mvc
         .perform(
-            put(CUSTOMER_ENDPOINT + "/1")
+            put(CUSTOMER_ENDPOINT + "00000000-0000-0000-0000-000000000000")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(204));
@@ -359,7 +362,7 @@ class CustomerControllerTest {
   void test_deleteCustomer_Returns204StatusCode() throws Exception {
     mvc
         .perform(
-            delete(CUSTOMER_ENDPOINT + "/1"))
+            delete(CUSTOMER_ENDPOINT + validCustomer.getId().toString()))
         .andExpect(status().is(204));
   }
 
@@ -387,8 +390,8 @@ class CustomerControllerTest {
 
   @Test
   void test_getPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    when(service.getPaymentMethod(anyLong(), anyLong()))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    when(service.getPaymentMethod(any(UUID.class), anyLong()))
+        .thenThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")));
 
     mvc
         .perform(
@@ -429,8 +432,8 @@ class CustomerControllerTest {
 
   @Test
   void test_addPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    when(service.addPaymentMethod(anyLong(), any(PaymentMethodDto.class)))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    when(service.addPaymentMethod(any(UUID.class), any(PaymentMethodDto.class)))
+        .thenThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")));
 
     var result = mvc
         .perform(
@@ -469,9 +472,9 @@ class CustomerControllerTest {
 
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    doThrow(new NoSuchCustomerException(1L))
+    doThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")))
         .when(service)
-        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
         .perform(
@@ -486,9 +489,9 @@ class CustomerControllerTest {
 
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
-    doThrow(new NoSuchPaymentMethod(1L, 1L))
+    doThrow(new NoSuchPaymentMethod(UUID.fromString("00000000-0000-0000-0000-000000000000"), 1L))
         .when(service)
-        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
         .perform(
@@ -514,9 +517,9 @@ class CustomerControllerTest {
 
   @Test
   void test_removePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    doThrow(new NoSuchCustomerException(1L))
+    doThrow(new NoSuchCustomerException(UUID.fromString("00000000-0000-0000-0000-000000000000")))
         .when(service)
-        .removePaymentMethod(anyLong(), anyLong());
+        .removePaymentMethod(any(UUID.class), anyLong());
 
     var result = mvc
         .perform(

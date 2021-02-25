@@ -16,6 +16,8 @@ import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,8 +35,9 @@ class CustomerServiceImplUnitTest {
 
   @BeforeAll
   static void beforeAll() {
+	UUID firstTestId = UUID.randomUUID();
     firstCustomer = Customer.builder()
-        .id(1L)
+        .id(firstTestId)
         .firstName("John")
         .lastName("Smith")
         .email("john_smith@test.com")
@@ -51,7 +54,7 @@ class CustomerServiceImplUnitTest {
         .paymentMethods(Set.of(
             PaymentMethod.builder()
                 .id(1L)
-                .ownerId(1L)
+                .ownerId(firstTestId)
                 .accountNum("123456789")
                 .notes("primary method")
                 .build()))
@@ -69,8 +72,9 @@ class CustomerServiceImplUnitTest {
         .zipcode("12345-6789")
         .build();
 
+    UUID secondTestId = UUID.randomUUID();
     secondCustomer = Customer.builder()
-        .id(2L)
+        .id(secondTestId)
         .firstName("Jane")
         .lastName("Doe")
         .email("jane_doe@test.com")
@@ -87,7 +91,7 @@ class CustomerServiceImplUnitTest {
         .paymentMethods(Set.of(
             PaymentMethod.builder()
                 .id(2L)
-                .ownerId(2L)
+                .ownerId(secondTestId)
                 .accountNum("98765431")
                 .notes(null)
                 .build()))
@@ -134,9 +138,8 @@ class CustomerServiceImplUnitTest {
 
   @Test
   void test_getCustomerById_ThrowsNoSuchCustomerExceptionOnInvalidId() {
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(-1L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(3L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(0L));
+    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerById(UUID.fromString("00000000-0000-0000-0000-000000000000")));
+    //multiple boundary-based UUID tests not necessary given their time + hardware based nature
   }
 
   @Test
@@ -157,9 +160,8 @@ class CustomerServiceImplUnitTest {
 
   @Test
   void test_getCustomerLoyaltyPointsById_ThrowsNoSuchCustomerExceptionOnInvalidId() {
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(-1L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(3L));
-    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(0L));
+    assertThrows(NoSuchCustomerException.class, () -> service.getCustomerLoyaltyPoints(UUID.fromString("00000000-0000-0000-0000-000000000000")));
+    //multiple boundary-based UUID tests not necessary given their time + hardware based nature
   }
 
   @Test

@@ -1,6 +1,8 @@
 package com.ss.utopia.customer.entity;
 
 import java.util.Set;
+import java.util.UUID;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,13 +26,15 @@ import lombok.ToString;
 public class Customer {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(columnDefinition = "BINARY(16)")
+  private UUID id;
 
   private String firstName;
 
   private String lastName;
 
+  @Builder.Default
   private Integer loyaltyPoints = 0;
 
   @Column(unique = true)
