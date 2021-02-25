@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.exception;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 /**
  * To be thrown when a {@link com.ss.utopia.customer.entity.Customer} cannot be found.
@@ -9,14 +10,14 @@ import java.util.NoSuchElementException;
  */
 public class NoSuchCustomerException extends NoSuchElementException {
 
-  private final Long customerId;
+  private final UUID customerId;
 
-  public NoSuchCustomerException(Long id) {
+  public NoSuchCustomerException(UUID id) {
     super("No customer record found for id=" + id);
     this.customerId = id;
   }
 
-  public Long getCustomerId() {
+  public UUID getCustomerId() {
     return customerId;
   }
 }

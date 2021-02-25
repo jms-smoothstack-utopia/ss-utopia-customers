@@ -15,20 +15,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.entity.Address;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
-import com.ss.utopia.customer.entity.Address;
-import com.ss.utopia.customer.entity.Customer;
-import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,8 +48,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 class CustomerControllerTest {
 
+  public static final UUID validCustomerId = UUID.randomUUID();
+
   public static final String CUSTOMER_ENDPOINT = "/customers";
-  public static final String DEFAULT_PAYMENT_ENDPOINT = CUSTOMER_ENDPOINT + "/1/payment-method";
+  public static final String DEFAULT_PAYMENT_ENDPOINT =
+      CUSTOMER_ENDPOINT + "/" + validCustomerId + "/payment-method";
 
   private final CustomerService service = Mockito.mock(CustomerService.class);
   private final CustomerController controller = new CustomerController(service);
@@ -57,7 +62,8 @@ class CustomerControllerTest {
       .build();
 
   private Customer validCustomer;
-  private CustomerDto validDto;
+  private UpdateCustomerDto validDto;
+  private CreateCustomerDto validCreateCustomerDto;
   private PaymentMethod validPaymentMethod;
   private PaymentMethodDto validPaymentMethodDto;
 
@@ -68,11 +74,12 @@ class CustomerControllerTest {
     // setup Customer objs
     validCustomer = new Customer();
 
-    validCustomer.setId(1L);
+    validCustomer.setId(validCustomerId);
     validCustomer.setFirstName("John");
 
     validCustomer.setLastName("Doe");
     validCustomer.setEmail("test@test.com");
+    validCustomer.setPhoneNumber("999-999-9999");
 
     //SSUTO-13 - View their Loyalty Points
     validCustomer.setLoyaltyPoints(3);
@@ -100,7 +107,7 @@ class CustomerControllerTest {
     validCustomer.setPaymentMethods(Set.of(validPaymentMethod));
 
     // setup DTOs
-    validDto = CustomerDto.builder()
+    validDto = UpdateCustomerDto.builder()
         .firstName(validCustomer.getFirstName())
         .lastName(validCustomer.getLastName())
         .email(validCustomer.getEmail())
@@ -113,6 +120,19 @@ class CustomerControllerTest {
     validPaymentMethodDto = PaymentMethodDto.builder()
         .accountNum(validPaymentMethod.getAccountNum())
         .notes(validPaymentMethod.getNotes())
+        .build();
+
+    validCreateCustomerDto = CreateCustomerDto.builder()
+        .id(validCustomerId)
+        .firstName(validCustomer.getFirstName())
+        .lastName(validCustomer.getLastName())
+        .email(validCustomer.getEmail())
+        .phoneNumber(validCustomer.getPhoneNumber())
+        .addrLine1(validAddress.getLine1())
+        .addrLine2(validAddress.getLine2())
+        .city(validAddress.getCity())
+        .state(validAddress.getState())
+        .zipcode(validAddress.getZipcode())
         .build();
   }
 
@@ -160,17 +180,19 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerById_Returns404OnInvalidId() throws Exception {
-    when(service.getCustomerById(-1L)).thenThrow(new NoSuchCustomerException(-1L));
+    var randomId = UUID.randomUUID();
+    when(service.getCustomerById(randomId)).thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
         .perform(
-            get(CUSTOMER_ENDPOINT + "/-1"))
+            get(CUSTOMER_ENDPOINT + "/" + randomId))
         .andExpect(status().is(404));
   }
 
   //SSUTO-13
   @Test
-  void test_getCustomerLoyaltyPoints_ReturnsValidCustomerLoyaltyPointsWith200StatusCode() throws Exception{
+  void test_getCustomerLoyaltyPoints_ReturnsValidCustomerLoyaltyPointsWith200StatusCode()
+      throws Exception {
     when(service.getCustomerLoyaltyPoints(validCustomer.getId())).thenReturn(validCustomer.getLoyaltyPoints());
 
     var result = mvc
@@ -186,18 +208,21 @@ class CustomerControllerTest {
   }
 
   @Test
-  void test_getCustomerLoyaltyPoints_Returns404StatusCode() throws Exception{
-    when(service.getCustomerLoyaltyPoints(-1l)).thenThrow(new NoSuchCustomerException(-1L));
+  void test_getCustomerLoyaltyPoints_Returns404StatusCode() throws Exception {
+    var randomId = UUID.randomUUID();
+    when(service.getCustomerLoyaltyPoints(randomId))
+        .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
         .perform(
-            get(CUSTOMER_ENDPOINT + "/loyalty/" + "/-1"))
+            get(CUSTOMER_ENDPOINT + "/loyalty/" + randomId ))
         .andExpect(status().is(404));
   }
 
   @Test
   void test_createNewCustomer_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
-    when(service.createNewCustomer(validDto)).thenReturn(validCustomer);
+    when(service.createNewCustomer(validCreateCustomerDto))
+        .thenReturn(validCustomer);
 
     var headerName = "Location";
     var headerVal = CUSTOMER_ENDPOINT + "/" + validCustomer.getId();
@@ -206,16 +231,16 @@ class CustomerControllerTest {
         .perform(
             post(CUSTOMER_ENDPOINT)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonMapper.writeValueAsString(validDto)))
+                .content(jsonMapper.writeValueAsString(validCreateCustomerDto)))
         .andExpect(status().is(201))
         .andExpect(header().string(headerName, headerVal));
   }
 
   //util
-  boolean noValidationViolations(CustomerDto customerDto) {
+  boolean noValidationViolations(UpdateCustomerDto updateCustomerDto) {
     return Validation.buildDefaultValidatorFactory()
         .getValidator()
-        .validate(customerDto)
+        .validate(updateCustomerDto)
         .isEmpty();
   }
 
@@ -318,12 +343,13 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
-    when(service.updateCustomer(anyLong(), any(CustomerDto.class)))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    var randomId = UUID.randomUUID();
+    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class)))
+        .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
         .perform(
-            put(CUSTOMER_ENDPOINT + "/-1")
+            put(CUSTOMER_ENDPOINT + "/" + randomId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(404));
@@ -345,11 +371,11 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
-    when(service.updateCustomer(anyLong(), any(CustomerDto.class))).thenReturn(validCustomer);
+    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class))).thenReturn(validCustomer);
 
     mvc
         .perform(
-            put(CUSTOMER_ENDPOINT + "/1")
+            put(CUSTOMER_ENDPOINT + "/" + validCustomerId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(jsonMapper.writeValueAsString(validDto)))
         .andExpect(status().is(204));
@@ -359,7 +385,7 @@ class CustomerControllerTest {
   void test_deleteCustomer_Returns204StatusCode() throws Exception {
     mvc
         .perform(
-            delete(CUSTOMER_ENDPOINT + "/1"))
+            delete(CUSTOMER_ENDPOINT + "/" + validCustomerId))
         .andExpect(status().is(204));
   }
 
@@ -387,8 +413,9 @@ class CustomerControllerTest {
 
   @Test
   void test_getPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    when(service.getPaymentMethod(anyLong(), anyLong()))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    var randomId = UUID.randomUUID();
+    when(service.getPaymentMethod(any(UUID.class), anyLong()))
+        .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
         .perform(
@@ -429,8 +456,9 @@ class CustomerControllerTest {
 
   @Test
   void test_addPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    when(service.addPaymentMethod(anyLong(), any(PaymentMethodDto.class)))
-        .thenThrow(new NoSuchCustomerException(-1L));
+    var randomId = UUID.randomUUID();
+    when(service.addPaymentMethod(any(UUID.class), any(PaymentMethodDto.class)))
+        .thenThrow(new NoSuchCustomerException(randomId));
 
     var result = mvc
         .perform(
@@ -469,9 +497,9 @@ class CustomerControllerTest {
 
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    doThrow(new NoSuchCustomerException(1L))
+    doThrow(new NoSuchCustomerException(validCustomerId))
         .when(service)
-        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
         .perform(
@@ -486,9 +514,9 @@ class CustomerControllerTest {
 
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
-    doThrow(new NoSuchPaymentMethod(1L, 1L))
+    doThrow(new NoSuchPaymentMethod(validCustomerId, 1L))
         .when(service)
-        .updatePaymentMethod(anyLong(), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
         .perform(
@@ -514,9 +542,9 @@ class CustomerControllerTest {
 
   @Test
   void test_removePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
-    doThrow(new NoSuchCustomerException(1L))
+    doThrow(new NoSuchCustomerException(validCustomerId))
         .when(service)
-        .removePaymentMethod(anyLong(), anyLong());
+        .removePaymentMethod(any(UUID.class), anyLong());
 
     var result = mvc
         .perform(

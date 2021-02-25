@@ -1,15 +1,17 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.entity.Customer;
+import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
-import com.ss.utopia.customer.entity.Customer;
-import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.repository.CustomerRepository;
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
 import java.util.List;
+import java.util.UUID;
 import javax.validation.Valid;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +43,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws NoSuchCustomerException  if a customer with the ID cannot be found.
    */
   @Override
-  public Customer getCustomerById(Long id) {
+  public Customer getCustomerById(UUID id) {
     notNull(id);
     return repository.findById(id)
         .orElseThrow(() -> new NoSuchCustomerException(id));
@@ -52,12 +54,12 @@ public class CustomerServiceImpl implements CustomerService {
    * <p>
    * Does not allow creation if a record with an existing email is present.
    *
-   * @param customerDto a valid {@link CustomerDto}.
+   * @param customerDto a valid {@link UpdateCustomerDto}.
    * @return the created customer record.
    * @throws DuplicateEmailException if a record already exists with the given email.
    */
   @Override
-  public Customer createNewCustomer(CustomerDto customerDto) {
+  public Customer createNewCustomer(CreateCustomerDto customerDto) {
     var customer = CustomerDtoMapper.map(customerDto);
 
     repository.findByEmail(customer.getEmail())
@@ -73,26 +75,26 @@ public class CustomerServiceImpl implements CustomerService {
    * <p>
    * TODO: Update to allow multiple addr fields
    *
-   * @param customerDto The {@link Customer} account to update.
+   * @param updateCustomerDto The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
    * @throws NoSuchCustomerException if no Customer found with the ID.
    * @throws DuplicateEmailException if a different record exists with the same email as the update
    *                                 information.
    */
   @Override
-  public Customer updateCustomer(Long customerId, @Valid CustomerDto customerDto) {
+  public Customer updateCustomer(UUID customerId, @Valid UpdateCustomerDto updateCustomerDto) {
     notNull(customerId);
 
-    var duplicateEmail = repository.findByEmail(customerDto.getEmail())
+    var duplicateEmail = repository.findByEmail(updateCustomerDto.getEmail())
         .stream()
         .anyMatch(customer -> !customer.getId().equals(customerId));
 
     if (duplicateEmail) {
-      throw new DuplicateEmailException(customerDto.getEmail());
+      throw new DuplicateEmailException(updateCustomerDto.getEmail());
     }
 
     var oldValue = getCustomerById(customerId);
-    var newValue = CustomerDtoMapper.map(customerDto);
+    var newValue = CustomerDtoMapper.map(updateCustomerDto);
     // set from old payment methods or it'll be erased
     newValue.setPaymentMethods(oldValue.getPaymentMethods());
     newValue.setId(customerId);
@@ -105,7 +107,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @param id the ID of the customer to remove.
    */
   @Override
-  public void removeCustomerById(Long id) {
+  public void removeCustomerById(UUID id) {
     notNull(id);
 
     repository.findById(id)
@@ -124,7 +126,7 @@ public class CustomerServiceImpl implements CustomerService {
    *                                 record.
    */
   @Override
-  public PaymentMethod getPaymentMethod(Long customerId, Long paymentId) {
+  public PaymentMethod getPaymentMethod(UUID customerId, Long paymentId) {
     notNull(customerId, paymentId);
 
     return repository.findById(customerId)
@@ -139,7 +141,7 @@ public class CustomerServiceImpl implements CustomerService {
   }
 
   @Override
-  public Integer getCustomerLoyaltyPoints(Long id) {
+  public Integer getCustomerLoyaltyPoints(UUID id) {
     return getCustomerById(id).getLoyaltyPoints();
   }
 
@@ -152,7 +154,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws NoSuchCustomerException if no customer record found with the given ID.
    */
   @Override
-  public Long addPaymentMethod(Long customerId, PaymentMethodDto paymentMethodDto) {
+  public Long addPaymentMethod(UUID customerId, PaymentMethodDto paymentMethodDto) {
     notNull(customerId);
 
     var customer = getCustomerById(customerId);
@@ -186,7 +188,7 @@ public class CustomerServiceImpl implements CustomerService {
    *                                 record.
    */
   @Override
-  public void updatePaymentMethod(Long customerId,
+  public void updatePaymentMethod(UUID customerId,
                                   Long paymentId,
                                   PaymentMethodDto paymentMethodDto) {
     notNull(customerId, paymentId);
@@ -215,7 +217,7 @@ public class CustomerServiceImpl implements CustomerService {
    * @throws NoSuchCustomerException if no customer record found with the given ID.
    */
   @Override
-  public void removePaymentMethod(Long customerId, Long paymentId) {
+  public void removePaymentMethod(UUID customerId, Long paymentId) {
     notNull(customerId, paymentId);
 
     var customer = getCustomerById(customerId);
@@ -229,7 +231,7 @@ public class CustomerServiceImpl implements CustomerService {
    *
    * @param ids vararg ids to check.
    */
-  private void notNull(Long... ids) {
+  private void notNull(Object... ids) {
     for (var i : ids) {
       if (i == null) {
         throw new IllegalArgumentException("ID cannot be null.");

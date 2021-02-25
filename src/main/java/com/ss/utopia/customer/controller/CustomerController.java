@@ -1,13 +1,15 @@
 package com.ss.utopia.customer.controller;
 
+import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
-import com.ss.utopia.customer.dto.CustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,20 +49,20 @@ public class CustomerController {
 
   @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE,
       MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+  public ResponseEntity<Customer> getCustomerById(@PathVariable UUID id) {
     LOGGER.info("GET Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerById(id)));
   }
 
   @GetMapping(value = "/loyalty/{id}", produces = {MediaType.APPLICATION_JSON_VALUE,
       MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable Long id) {
+  public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable UUID id) {
     LOGGER.info("GET Customer Loyalty Points when Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerLoyaltyPoints(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateCustomerDto customerDto) {
     LOGGER.info("POST Customer");
     var createdCustomer = service.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
@@ -71,15 +73,15 @@ public class CustomerController {
   // Additionally, any field not present should not cause an error and should instead just not be modified.
   @PutMapping(value = "/{id}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateExistingCustomer(@PathVariable Long id,
-                                                  @Valid @RequestBody CustomerDto customerDto) {
+  public ResponseEntity<?> updateExistingCustomer(@PathVariable UUID id,
+                                                  @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
     LOGGER.info("PUT Customer id=" + id);
-    service.updateCustomer(id, customerDto);
+    service.updateCustomer(id, updateCustomerDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
+  public ResponseEntity<String> deleteCustomer(@PathVariable UUID id) {
     LOGGER.info("DELETE id=" + id);
     service.removeCustomerById(id);
     return ResponseEntity.noContent().build();
@@ -87,7 +89,7 @@ public class CustomerController {
 
   @GetMapping(value = "/{customerId}/payment-method/{paymentId}",
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable Long customerId,
+  public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable UUID customerId,
                                                         @PathVariable Long paymentId) {
     LOGGER.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
@@ -95,7 +97,7 @@ public class CustomerController {
 
   @PostMapping(value = "/{id}/payment-method",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> addPaymentMethod(@PathVariable Long id,
+  public ResponseEntity<?> addPaymentMethod(@PathVariable UUID id,
                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
     LOGGER.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
@@ -105,7 +107,7 @@ public class CustomerController {
 
   @PutMapping(value = "/{customerId}/payment-method/{paymentId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updatePaymentMethod(@PathVariable Long customerId,
+  public ResponseEntity<?> updatePaymentMethod(@PathVariable UUID customerId,
                                                @PathVariable Long paymentId,
                                                @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
     LOGGER.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
@@ -114,7 +116,7 @@ public class CustomerController {
   }
 
   @DeleteMapping("/{customerId}/payment-method/{paymentId}")
-  public ResponseEntity<?> removePaymentMethod(@PathVariable Long customerId,
+  public ResponseEntity<?> removePaymentMethod(@PathVariable UUID customerId,
                                                @PathVariable Long paymentId) {
     LOGGER.info("DELETE PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     service.removePaymentMethod(customerId, paymentId);

@@ -1,30 +1,32 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
 import java.util.List;
+import java.util.UUID;
 
 public interface CustomerService {
 
   List<Customer> getAllCustomers();
 
-  Customer getCustomerById(Long id);
+  Customer getCustomerById(UUID id);
 
-  Customer createNewCustomer(CustomerDto customerDto);
+  Customer createNewCustomer(CreateCustomerDto customerDto);
 
-  void removeCustomerById(Long id);
+  void removeCustomerById(UUID id);
 
-  Customer updateCustomer(Long customerId, CustomerDto customerDto);
+  Customer updateCustomer(UUID customerId, UpdateCustomerDto updateCustomerDto);
 
-  Long addPaymentMethod(Long id, PaymentMethodDto paymentMethodDto);
+  Long addPaymentMethod(UUID id, PaymentMethodDto paymentMethodDto);
 
-  void updatePaymentMethod(Long customerId, Long paymentId, PaymentMethodDto paymentMethodDto);
+  void updatePaymentMethod(UUID customerId, Long paymentId, PaymentMethodDto paymentMethodDto);
 
-  void removePaymentMethod(Long customerId, Long paymentId);
+  void removePaymentMethod(UUID customerId, Long paymentId);
 
-  PaymentMethod getPaymentMethod(Long customerId, Long paymentId);
+  PaymentMethod getPaymentMethod(UUID customerId, Long paymentId);
 
-  Integer getCustomerLoyaltyPoints(Long id);
+  Integer getCustomerLoyaltyPoints(UUID id);
 }
