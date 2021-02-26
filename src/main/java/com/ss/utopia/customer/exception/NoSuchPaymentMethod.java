@@ -14,10 +14,10 @@ public class NoSuchPaymentMethod extends NoSuchElementException {
   private final UUID customerId;
   private final Long paymentId;
 
-  public NoSuchPaymentMethod(UUID customerId2, Long paymentId) {
+  public NoSuchPaymentMethod(UUID customerId, Long paymentId) {
     super("Could not locate payment method with ID '"
-              + paymentId + "' for customer ID '" + customerId2 + "'");
-    this.customerId = customerId2;
+              + paymentId + "' for customer ID '" + customerId + "'");
+    this.customerId = customerId;
     this.paymentId = paymentId;
   }
 

@@ -2,7 +2,6 @@ package com.ss.utopia.customer.entity;
 
 import java.util.Set;
 import java.util.UUID;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,10 +36,12 @@ public class Customer {
   @Builder.Default
   private Integer loyaltyPoints = 0;
 
+  private String phoneNumber;
+
   @Column(unique = true)
   private String email;
 
-  @OneToMany(cascade = CascadeType.ALL,  fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<Address> addresses;
 
   @EqualsAndHashCode.Exclude

@@ -3,15 +3,11 @@ package com.ss.utopia.customer.repository;
 import com.ss.utopia.customer.entity.Customer;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, UUID> {
-  Optional<Customer> findByEmail(String email);
-  
 
+  Optional<Customer> findByEmail(String email);
 }

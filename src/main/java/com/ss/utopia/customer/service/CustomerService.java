@@ -1,9 +1,10 @@
 package com.ss.utopia.customer.service;
 
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
-import com.ss.utopia.customer.dto.CustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
 import java.util.List;
 import java.util.UUID;
 
@@ -13,11 +14,11 @@ public interface CustomerService {
 
   Customer getCustomerById(UUID id);
 
-  Customer createNewCustomer(CustomerDto customerDto);
+  Customer createNewCustomer(CreateCustomerDto customerDto);
 
   void removeCustomerById(UUID id);
 
-  Customer updateCustomer(UUID customerId, CustomerDto customerDto);
+  Customer updateCustomer(UUID customerId, UpdateCustomerDto updateCustomerDto);
 
   Long addPaymentMethod(UUID id, PaymentMethodDto paymentMethodDto);
 
