@@ -51,7 +51,7 @@ class CustomerControllerTest {
 
   public static final UUID validCustomerId = UUID.randomUUID();
 
-  public static final String CUSTOMER_ENDPOINT = "/customers";
+  public static final String CUSTOMER_ENDPOINT = EndpointConstants.CUSTOMERS_ENDPOINT;
   public static final String DEFAULT_PAYMENT_ENDPOINT =
       CUSTOMER_ENDPOINT + "/" + validCustomerId + "/payment-method";
 
