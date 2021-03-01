@@ -2,13 +2,11 @@
 
 Microservice to handle customer account persistence.
 
-All endpoints stem from `/customers` and can be explored within the [./
-src/main/java/com/ss/utopia/customer/controller/CustomerController.java](CustomerController) class.
+All endpoints stem from `/customers` and can be explored within the [./src/main/java/com/ss/utopia/customer/controller/CustomerController.java](CustomerController) class.
 
-This service currently runs on port 8081 to avoid collisions on ports during development.
+This service currently runs on port `8081` to avoid collisions on ports during development.
 
-It requires the use of a local instance of MySQL running on port 3306 with a `utopia_customers`
-database for connection. See [./src/main/resources/application.properties](./src/main/resources/application.properties) for more details.
+It requires the use of a local instance of MySQL running on port `3306` with a `utopia_customers` database for connection. See [./src/main/resources/application.properties](./src/main/resources/application.properties) for more details.
 
 A docker instance for this can be created quickly with the following command:
 
@@ -22,5 +20,7 @@ After starting the container, you will need to connect to the MySQL root databas
 CREATE DATABASE utopia_customers;
 ```
 
-After the above is accomplished, the service can be started with `mvn spring-boot:run`
-or `mvn spring-boot:start` to fork a new process.
+After the above is accomplished, the service can be started with `mvn spring-boot:run` or `mvn spring-boot:start` to fork a new process.
+
+## API Specification
+API specifications can be retrieved via OpenAPI while the service is running by going to `http://localhost:8081/api-docs` for the most up-to-date version. A copy is stored locally in the root folder as [api-docs.json](./api-docs.json) but is not guaranteed to be updated with changes to the service.
