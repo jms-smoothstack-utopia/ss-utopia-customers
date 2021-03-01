@@ -25,10 +25,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/customers")
+@RequestMapping(EndpointConstants.CUSTOMERS_ENDPOINT)
 public class CustomerController {
 
-  private static final String MAPPING = "/customers";
+  private static final String MAPPING = EndpointConstants.CUSTOMERS_ENDPOINT;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CustomerController.class);
   private final CustomerService service;
