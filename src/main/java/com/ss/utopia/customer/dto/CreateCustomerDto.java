@@ -50,4 +50,8 @@ public class CreateCustomerDto {
   @Pattern(regexp = "^\\d{5}(?:[-\\s]\\d{4})?$",
       message = "Zipcode does not meet expected format: '#####-####' or '#####'")
   private String zipcode;
+  
+  private Boolean ticketEmails;
+  
+  private Boolean flightEmails;
 }

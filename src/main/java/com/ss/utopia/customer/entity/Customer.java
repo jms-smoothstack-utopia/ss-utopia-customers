@@ -43,6 +43,12 @@ public class Customer {
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   private Set<Address> addresses;
+  
+  @Builder.Default
+  private Boolean ticketEmails = true;
+  
+  @Builder.Default
+  private Boolean flightEmails = true;
 
   @EqualsAndHashCode.Exclude
   @ToString.Exclude
