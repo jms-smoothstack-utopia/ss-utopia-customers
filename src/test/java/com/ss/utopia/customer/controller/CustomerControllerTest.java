@@ -81,6 +81,8 @@ class CustomerControllerTest {
     validCustomer.setLastName("Doe");
     validCustomer.setEmail("test@test.com");
     validCustomer.setPhoneNumber("999-999-9999");
+    validCustomer.setTicketEmails(true);
+    validCustomer.setFlightEmails(true);
 
     //SSUTO-13 - View their Loyalty Points
     validCustomer.setLoyaltyPoints(3);
@@ -116,7 +118,10 @@ class CustomerControllerTest {
         .addrLine2(validAddress.getLine2())
         .city(validAddress.getCity())
         .state(validAddress.getState())
-        .zipcode(validAddress.getZipcode()).build();
+        .zipcode(validAddress.getZipcode())
+        .ticketEmails(validCustomer.getTicketEmails())
+        .flightEmails(validCustomer.getFlightEmails())
+        .build();
 
     validPaymentMethodDto = PaymentMethodDto.builder()
         .accountNum(validPaymentMethod.getAccountNum())
