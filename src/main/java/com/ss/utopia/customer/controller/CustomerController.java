@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,22 +24,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
-@RequestMapping(EndpointConstants.CUSTOMERS_ENDPOINT)
+@RequestMapping(EndpointConstants.API_V_0_1_CUSTOMERS)
+@RequiredArgsConstructor
 public class CustomerController {
 
-  private static final String MAPPING = EndpointConstants.CUSTOMERS_ENDPOINT;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(CustomerController.class);
+  private static final String MAPPING = EndpointConstants.API_V_0_1_CUSTOMERS;
   private final CustomerService service;
-
-  public CustomerController(CustomerService customerService) {
-    this.service = customerService;
-  }
 
   @GetMapping(produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<List<Customer>> getAllCustomers() {
-    LOGGER.info("GET Customer all");
+    log.info("GET Customer all");
     var customers = service.getAllCustomers();
     if (customers.isEmpty()) {
       return ResponseEntity.noContent().build();
@@ -50,20 +46,20 @@ public class CustomerController {
   @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE,
       MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Customer> getCustomerById(@PathVariable UUID id) {
-    LOGGER.info("GET Customer id=" + id);
+    log.info("GET Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerById(id)));
   }
 
   @GetMapping(value = "/loyalty/{id}", produces = {MediaType.APPLICATION_JSON_VALUE,
       MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable UUID id) {
-    LOGGER.info("GET Customer Loyalty Points when Customer id=" + id);
+    log.info("GET Customer Loyalty Points when Customer id=" + id);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerLoyaltyPoints(id)));
   }
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateCustomerDto customerDto) {
-    LOGGER.info("POST Customer");
+    log.info("POST Customer");
     var createdCustomer = service.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
     return ResponseEntity.created(uri).body(createdCustomer);
@@ -75,14 +71,14 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExistingCustomer(@PathVariable UUID id,
                                                   @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
-    LOGGER.info("PUT Customer id=" + id);
+    log.info("PUT Customer id=" + id);
     service.updateCustomer(id, updateCustomerDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping("/{id}")
   public ResponseEntity<String> deleteCustomer(@PathVariable UUID id) {
-    LOGGER.info("DELETE id=" + id);
+    log.info("DELETE id=" + id);
     service.removeCustomerById(id);
     return ResponseEntity.noContent().build();
   }
@@ -91,7 +87,7 @@ public class CustomerController {
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable UUID customerId,
                                                         @PathVariable Long paymentId) {
-    LOGGER.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+    log.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     return ResponseEntity.of(Optional.of(service.getPaymentMethod(customerId, paymentId)));
   }
 
@@ -99,7 +95,7 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> addPaymentMethod(@PathVariable UUID id,
                                             @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
-    LOGGER.info("POST PaymentMethod id=" + id);
+    log.info("POST PaymentMethod id=" + id);
     var paymentId = service.addPaymentMethod(id, paymentMethodDto);
     var uri = URI.create(MAPPING + "/" + id + "/payment-method/" + paymentId);
     return ResponseEntity.created(uri).build();
@@ -110,7 +106,7 @@ public class CustomerController {
   public ResponseEntity<?> updatePaymentMethod(@PathVariable UUID customerId,
                                                @PathVariable Long paymentId,
                                                @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
-    LOGGER.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+    log.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     service.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
     return ResponseEntity.noContent().build();
   }
@@ -118,7 +114,7 @@ public class CustomerController {
   @DeleteMapping("/{customerId}/payment-method/{paymentId}")
   public ResponseEntity<?> removePaymentMethod(@PathVariable UUID customerId,
                                                @PathVariable Long paymentId) {
-    LOGGER.info("DELETE PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+    log.info("DELETE PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     service.removePaymentMethod(customerId, paymentId);
     return ResponseEntity.noContent().build();
   }
