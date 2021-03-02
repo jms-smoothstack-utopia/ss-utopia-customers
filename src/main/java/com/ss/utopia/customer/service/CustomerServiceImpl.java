@@ -13,16 +13,14 @@ import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class CustomerServiceImpl implements CustomerService {
 
   private final CustomerRepository repository;
-
-  public CustomerServiceImpl(CustomerRepository repository) {
-    this.repository = repository;
-  }
 
   /**
    * Gets all {@link Customer} records.

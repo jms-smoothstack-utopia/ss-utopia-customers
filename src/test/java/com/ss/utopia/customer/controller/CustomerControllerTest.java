@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.UUID;
 import javax.validation.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,7 @@ class CustomerControllerTest {
 
   public static final UUID validCustomerId = UUID.randomUUID();
 
-  public static final String CUSTOMER_ENDPOINT = EndpointConstants.CUSTOMERS_ENDPOINT;
+  public static final String CUSTOMER_ENDPOINT = EndpointConstants.API_V_0_1_CUSTOMERS;
   public static final String DEFAULT_PAYMENT_ENDPOINT =
       CUSTOMER_ENDPOINT + "/" + validCustomerId + "/payment-method";
 
