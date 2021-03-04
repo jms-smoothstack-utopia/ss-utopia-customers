@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
@@ -101,7 +102,6 @@ class CustomerServiceImplUnitTest {
         .firstName(secondCustomer.getFirstName())
         .lastName(secondCustomer.getLastName())
         .email(secondCustomer.getEmail())
-        .loyaltyPoints(secondCustomer.getLoyaltyPoints())
         .addrLine1("456 Strawberry Ln")
         .addrLine2(null)
         .city("Las Vegas")
@@ -182,6 +182,18 @@ class CustomerServiceImplUnitTest {
                  () -> service.getCustomerLoyaltyPoints(UUID.fromString("-1")));
     assertThrows(IllegalArgumentException.class,
                  () -> service.getCustomerLoyaltyPoints(UUID.fromString("0")));
+  }
+  
+  @Test
+  void test_updateCustomerLoyaltyPoints_ThrowsExceptionOnNegativeValue() {
+	  var mockUpdateDto = UpdateCustomerLoyaltyDto.builder()
+			  				.increment(false)
+			  				.pointsToChange(1000)
+			  				.build();
+	  when(repository.findById(firstCustomerId)).thenReturn(Optional.of(firstCustomer));
+	  
+	  assertThrows(IllegalStateException.class,
+			  () -> service.updateCustomerLoyaltyPoints(firstCustomerId, mockUpdateDto));
   }
 
   @Test

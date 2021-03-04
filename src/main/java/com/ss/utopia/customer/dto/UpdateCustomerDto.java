@@ -1,7 +1,6 @@
 package com.ss.utopia.customer.dto;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -22,12 +21,12 @@ public class UpdateCustomerDto {
   @NotBlank(message = "Last name is mandatory")
   private String lastName;
 
-  @Min(0)
-  private Integer loyaltyPoints;
-
   @NotBlank
   @Email(message = "Email is invalid")
   private String email;
+
+  @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$", message = "Phone number must be in the form ###-###-####.")
+  private String phoneNumber;
 
   @NotBlank(message = "Address line1 is mandatory")
   private String addrLine1;
