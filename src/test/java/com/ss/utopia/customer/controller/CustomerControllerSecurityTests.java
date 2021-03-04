@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
@@ -97,13 +98,17 @@ public class CustomerControllerSecurityTests {
       .lastName(mockCustomer.getLastName())
       .email(mockCustomer.getEmail())
       .phoneNumber(mockCustomer.getPhoneNumber())
-      .loyaltyPoints(mockCustomer.getLoyaltyPoints())
       .addrLine1(mockCreateDto.getAddrLine1())
       .addrLine2(mockCreateDto.getAddrLine2())
       .city(mockCreateDto.getCity())
       .state(mockCreateDto.getState())
       .zipcode(mockCreateDto.getZipcode())
       .build();
+  
+  UpdateCustomerLoyaltyDto mockLoyaltyDto = UpdateCustomerLoyaltyDto.builder()
+		  .pointsToChange(5)
+		  .increment(true)
+		  .build();
 
   @BeforeEach
   void beforeEach() {
@@ -279,6 +284,44 @@ public class CustomerControllerSecurityTests {
         .perform(
             get(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId()))
         .andExpect(status().isForbidden());
+  }
+  
+  @Test
+  void test_updateCustomerLoyaltyPoints_CanBePerformedByAuthedUserWithRoles()
+  	throws Exception {
+	  var content = new ObjectMapper().writeValueAsString(mockLoyaltyDto);
+	  var alwaysAuthed = List.of(MockUser.ADMIN,
+					             MockUser.TRAVEL_AGENT,
+					             MockUser.EMPLOYEE);
+	  for (var user : alwaysAuthed) {
+		  mvc
+		  	.perform(
+		  		put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+		  		.header("Authorization", getJwt(user))
+		  		.contentType(MediaType.APPLICATION_JSON)
+		  		.content(content))
+		  		.andExpect(status().isOk());
+	  	}
+
+	  var unauthed = List.of(MockUser.DEFAULT, MockUser.UNMATCH_CUSTOMER, MockUser.MATCH_CUSTOMER);
+
+	  for (var user : unauthed) {
+		 mvc
+		 .perform(
+				 put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+				 .header("Authorization", getJwt(user))
+		  			.contentType(MediaType.APPLICATION_JSON)
+			  		.content(content))
+		 .andExpect(status().isForbidden());
+	  }
+
+// also check for not authenticated
+	  mvc
+	  .perform(
+			  put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+		  		.contentType(MediaType.APPLICATION_JSON)
+		  		.content(content))
+	  .andExpect(status().isForbidden());
   }
 
   /**

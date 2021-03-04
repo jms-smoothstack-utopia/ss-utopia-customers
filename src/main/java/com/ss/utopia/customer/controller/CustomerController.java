@@ -3,6 +3,7 @@ package com.ss.utopia.customer.controller;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.security.permissions.CreateCustomerPermission;
@@ -71,6 +72,16 @@ public class CustomerController {
   public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable UUID customerId) {
     log.info("GET Customer Loyalty Points when Customer id=" + customerId);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerLoyaltyPoints(customerId)));
+  }
+  
+  @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','TRAVEL_AGENT')")
+  @PutMapping(value = "/loyalty/{customerId}",
+		  consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<?> updateCustomerloyaltyPoints(@PathVariable UUID customerId,
+		  						@Valid @RequestBody UpdateCustomerLoyaltyDto customerLoyaltyDto) {
+	  log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
+	  service.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
+	  return ResponseEntity.ok().build();
   }
 
   @CreateCustomerPermission

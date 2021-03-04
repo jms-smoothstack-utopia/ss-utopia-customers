@@ -3,9 +3,11 @@ package com.ss.utopia.customer.service;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
+import com.ss.utopia.customer.exception.IllegalPointChangeException;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
@@ -145,11 +147,6 @@ public class CustomerServiceImpl implements CustomerService {
         .orElseThrow(() -> new NoSuchCustomerException(customerId));
   }
 
-  @Override
-  public Integer getCustomerLoyaltyPoints(UUID id) {
-    return getCustomerById(id).getLoyaltyPoints();
-  }
-
   /**
    * Creates a new {@link PaymentMethod} record for a {@link Customer}.
    *
@@ -229,6 +226,29 @@ public class CustomerServiceImpl implements CustomerService {
     customer.getPaymentMethods()
         .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
     repository.save(customer);
+  }
+  
+  @Override
+  public Integer getCustomerLoyaltyPoints(UUID id) {
+    return getCustomerById(id).getLoyaltyPoints();
+  }
+  
+  @Override
+  public void updateCustomerLoyaltyPoints(UUID id, UpdateCustomerLoyaltyDto customerLoyaltyDto) {
+	  var customer = getCustomerById(id);
+	  
+	  var points = customer.getLoyaltyPoints();
+	  if (customerLoyaltyDto.getIncrement()) {
+		  //TODO: If loyalty point maximum is ever added, throw IllegalPointChange here
+		  points += customerLoyaltyDto.getPointsToChange();
+	  } else { 
+		  points -= customerLoyaltyDto.getPointsToChange();
+		  if (points < 0) {
+			  throw new IllegalPointChangeException(id, customer.getLoyaltyPoints(), customerLoyaltyDto.getPointsToChange());
+		  }
+	  }
+	  customer.setLoyaltyPoints(points);
+	  repository.save(customer);
   }
 
   /**
