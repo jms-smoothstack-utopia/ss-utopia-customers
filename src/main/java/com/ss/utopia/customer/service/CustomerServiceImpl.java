@@ -47,6 +47,13 @@ public class CustomerServiceImpl implements CustomerService {
         .orElseThrow(() -> new NoSuchCustomerException(id));
   }
 
+  @Override
+  public Customer getCustomerByEmail(String email) {
+    notNull(email);
+    return repository.findByEmail(email)
+        .orElseThrow(() -> new NoSuchCustomerException(email));
+  }
+
   /**
    * Creates a new {@link Customer} record.
    * <p>

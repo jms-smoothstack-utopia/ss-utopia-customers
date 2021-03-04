@@ -14,6 +14,8 @@ public interface CustomerService {
 
   Customer getCustomerById(UUID id);
 
+  Customer getCustomerByEmail(String email);
+
   Customer createNewCustomer(CreateCustomerDto customerDto);
 
   void removeCustomerById(UUID id);

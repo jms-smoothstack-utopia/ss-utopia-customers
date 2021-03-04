@@ -29,6 +29,9 @@ public class UpdateCustomerDto {
   @Email(message = "Email is invalid")
   private String email;
 
+  @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$", message = "Phone number must be in the form ###-###-####.")
+  private String phoneNumber;
+
   @NotBlank(message = "Address line1 is mandatory")
   private String addrLine1;
 

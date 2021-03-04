@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.exception;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -11,13 +12,25 @@ import java.util.UUID;
 public class NoSuchCustomerException extends NoSuchElementException {
 
   private final UUID customerId;
+  private final String customerEmail;
 
   public NoSuchCustomerException(UUID id) {
     super("No customer record found for id=" + id);
     this.customerId = id;
+    this.customerEmail = null;
   }
 
-  public UUID getCustomerId() {
-    return customerId;
+  public NoSuchCustomerException(String email) {
+    super("No customer record found for email=" + email);
+    this.customerEmail = email;
+    this.customerId = null;
+  }
+
+  public Optional<UUID> getCustomerId() {
+    return Optional.ofNullable(customerId);
+  }
+
+  public Optional<String> getCustomerEmail() {
+    return Optional.ofNullable(customerEmail);
   }
 }
