@@ -90,16 +90,16 @@ public class ExceptionControllerAdvisor {
     response.put("message", errors);
     return response;
   }
-  
+
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(IllegalPointChangeException.class)
   public Map<String, Object> handleIllegalPointChangeExceptions(IllegalPointChangeException ex) {
-	  LOGGER.error(ex.getMessage());
-	  
-	  var response = new HashMap<String, Object>();
-	  response.put("error", ex.getMessage());
-	  response.put("status", 400);
-	  return response;
+    LOGGER.error(ex.getMessage());
+
+    var response = new HashMap<String, Object>();
+    response.put("error", ex.getMessage());
+    response.put("status", 400);
+    return response;
   }
 
   /**

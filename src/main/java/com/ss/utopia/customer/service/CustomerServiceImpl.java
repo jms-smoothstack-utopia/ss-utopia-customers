@@ -227,28 +227,30 @@ public class CustomerServiceImpl implements CustomerService {
         .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
     repository.save(customer);
   }
-  
+
   @Override
   public Integer getCustomerLoyaltyPoints(UUID id) {
     return getCustomerById(id).getLoyaltyPoints();
   }
-  
+
   @Override
   public void updateCustomerLoyaltyPoints(UUID id, UpdateCustomerLoyaltyDto customerLoyaltyDto) {
-	  var customer = getCustomerById(id);
-	  
-	  var points = customer.getLoyaltyPoints();
-	  if (customerLoyaltyDto.getIncrement()) {
-		  //TODO: If loyalty point maximum is ever added, throw IllegalPointChange here
-		  points += customerLoyaltyDto.getPointsToChange();
-	  } else { 
-		  points -= customerLoyaltyDto.getPointsToChange();
-		  if (points < 0) {
-			  throw new IllegalPointChangeException(id, customer.getLoyaltyPoints(), customerLoyaltyDto.getPointsToChange());
-		  }
-	  }
-	  customer.setLoyaltyPoints(points);
-	  repository.save(customer);
+    var customer = getCustomerById(id);
+
+    var points = customer.getLoyaltyPoints();
+    if (customerLoyaltyDto.getIncrement()) {
+      //TODO: If loyalty point maximum is ever added, throw IllegalPointChange here
+      points += customerLoyaltyDto.getPointsToChange();
+    } else {
+      points -= customerLoyaltyDto.getPointsToChange();
+      if (points < 0) {
+        throw new IllegalPointChangeException(id,
+                                              customer.getLoyaltyPoints(),
+                                              customerLoyaltyDto.getPointsToChange());
+      }
+    }
+    customer.setLoyaltyPoints(points);
+    repository.save(customer);
   }
 
   /**

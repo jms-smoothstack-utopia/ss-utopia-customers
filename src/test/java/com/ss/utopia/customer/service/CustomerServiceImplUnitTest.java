@@ -13,7 +13,6 @@ import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
-import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;
@@ -183,17 +182,17 @@ class CustomerServiceImplUnitTest {
     assertThrows(IllegalArgumentException.class,
                  () -> service.getCustomerLoyaltyPoints(UUID.fromString("0")));
   }
-  
+
   @Test
   void test_updateCustomerLoyaltyPoints_ThrowsExceptionOnNegativeValue() {
-	  var mockUpdateDto = UpdateCustomerLoyaltyDto.builder()
-			  				.increment(false)
-			  				.pointsToChange(1000)
-			  				.build();
-	  when(repository.findById(firstCustomerId)).thenReturn(Optional.of(firstCustomer));
-	  
-	  assertThrows(IllegalStateException.class,
-			  () -> service.updateCustomerLoyaltyPoints(firstCustomerId, mockUpdateDto));
+    var mockUpdateDto = UpdateCustomerLoyaltyDto.builder()
+        .increment(false)
+        .pointsToChange(1000)
+        .build();
+    when(repository.findById(firstCustomerId)).thenReturn(Optional.of(firstCustomer));
+
+    assertThrows(IllegalStateException.class,
+                 () -> service.updateCustomerLoyaltyPoints(firstCustomerId, mockUpdateDto));
   }
 
   @Test
