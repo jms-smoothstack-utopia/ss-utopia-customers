@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
@@ -14,6 +15,7 @@ import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.repository.CustomerRepository;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.ResponseEntity;
 
 class CustomerServiceImplUnitTest {
 
@@ -33,7 +36,8 @@ class CustomerServiceImplUnitTest {
   private static UpdateCustomerDto dtoSecondCustomer;
 
   private final CustomerRepository repository = Mockito.mock(CustomerRepository.class);
-  private final CustomerService service = new CustomerServiceImpl(repository);
+  private final AccountsClient accountsClient = Mockito.mock(AccountsClient.class);
+  private final CustomerService service = new CustomerServiceImpl(repository, accountsClient);
 
   @BeforeAll
   static void beforeAll() {
@@ -112,6 +116,7 @@ class CustomerServiceImplUnitTest {
   @BeforeEach
   void beforeEach() {
     Mockito.reset(repository);
+    Mockito.reset(accountsClient);
   }
 
   @Test

@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @NoArgsConstructor
@@ -17,8 +18,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CreateCustomerDto {
 
-  @NotNull
-  private UUID id;
+  public static final String REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*-_=+,.?])[A-Za-z\\d!@#$%^&*-_=+,.?]{10,128}$";
+  public static final String REGEX_MSG = "Password must be between 10 and 128 characters,"
+      + " contain at least one lowercase letter,"
+      + " at least one uppercase letter,"
+      + " at least one number,"
+      + " and at least one special character from the following: !@#$%^&*-_=+,.?";
 
   @NotBlank(message = "First name is mandatory")
   private String firstName;
@@ -30,6 +35,13 @@ public class CreateCustomerDto {
   @NotBlank(message = "Email cannot be blank.")
   @Email(message = "Email must be valid.")
   private String email;
+
+  @ToString.Exclude
+  @NotNull
+  @NotBlank(message = "Password cannot be blank.")
+  @Size(min = 10, max = 128, message = "Length must be between 10 and 128 characters.")
+  @Pattern(regexp = REGEX, message = REGEX_MSG)
+  private String password;
 
   @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$", message = "Phone number must be in the form ###-###-####.")
   private String phoneNumber;

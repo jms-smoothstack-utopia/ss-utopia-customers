@@ -81,10 +81,10 @@ public class CustomerControllerSecurityTests {
       .build();
 
   CreateCustomerDto mockCreateDto = CreateCustomerDto.builder()
-      .id(mockCustomer.getId())
       .firstName(mockCustomer.getFirstName())
       .lastName(mockCustomer.getLastName())
       .email(mockCustomer.getEmail())
+      .password("abCD1234!@")
       .phoneNumber(mockCustomer.getPhoneNumber())
       .addrLine1("2 Electric Ave.")
       .addrLine2("Suite HI-R")
