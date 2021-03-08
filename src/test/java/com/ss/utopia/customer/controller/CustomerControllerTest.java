@@ -128,10 +128,10 @@ class CustomerControllerTest {
         .build();
 
     validCreateCustomerDto = CreateCustomerDto.builder()
-        .id(validCustomerId)
         .firstName(validCustomer.getFirstName())
         .lastName(validCustomer.getLastName())
         .email(validCustomer.getEmail())
+        .password("abCD1234!@")
         .phoneNumber(validCustomer.getPhoneNumber())
         .addrLine1(validAddress.getLine1())
         .addrLine2(validAddress.getLine2())

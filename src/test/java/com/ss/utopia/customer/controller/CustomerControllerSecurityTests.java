@@ -81,10 +81,10 @@ public class CustomerControllerSecurityTests {
       .build();
 
   CreateCustomerDto mockCreateDto = CreateCustomerDto.builder()
-      .id(mockCustomer.getId())
       .firstName(mockCustomer.getFirstName())
       .lastName(mockCustomer.getLastName())
       .email(mockCustomer.getEmail())
+      .password("abCD1234!@")
       .phoneNumber(mockCustomer.getPhoneNumber())
       .addrLine1("2 Electric Ave.")
       .addrLine2("Suite HI-R")
@@ -104,11 +104,11 @@ public class CustomerControllerSecurityTests {
       .state(mockCreateDto.getState())
       .zipcode(mockCreateDto.getZipcode())
       .build();
-  
+
   UpdateCustomerLoyaltyDto mockLoyaltyDto = UpdateCustomerLoyaltyDto.builder()
-		  .pointsToChange(5)
-		  .increment(true)
-		  .build();
+      .pointsToChange(5)
+      .increment(true)
+      .build();
 
   @BeforeEach
   void beforeEach() {
@@ -285,43 +285,43 @@ public class CustomerControllerSecurityTests {
             get(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId()))
         .andExpect(status().isForbidden());
   }
-  
+
   @Test
   void test_updateCustomerLoyaltyPoints_CanBePerformedByAuthedUserWithRoles()
-  	throws Exception {
-	  var content = new ObjectMapper().writeValueAsString(mockLoyaltyDto);
-	  var alwaysAuthed = List.of(MockUser.ADMIN,
-					             MockUser.TRAVEL_AGENT,
-					             MockUser.EMPLOYEE);
-	  for (var user : alwaysAuthed) {
-		  mvc
-		  	.perform(
-		  		put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
-		  		.header("Authorization", getJwt(user))
-		  		.contentType(MediaType.APPLICATION_JSON)
-		  		.content(content))
-		  		.andExpect(status().isOk());
-	  	}
+      throws Exception {
+    var content = new ObjectMapper().writeValueAsString(mockLoyaltyDto);
+    var alwaysAuthed = List.of(MockUser.ADMIN,
+                               MockUser.TRAVEL_AGENT,
+                               MockUser.EMPLOYEE);
+    for (var user : alwaysAuthed) {
+      mvc
+          .perform(
+              put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+                  .header("Authorization", getJwt(user))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(content))
+          .andExpect(status().isOk());
+    }
 
-	  var unauthed = List.of(MockUser.DEFAULT, MockUser.UNMATCH_CUSTOMER, MockUser.MATCH_CUSTOMER);
+    var unauthed = List.of(MockUser.DEFAULT, MockUser.UNMATCH_CUSTOMER, MockUser.MATCH_CUSTOMER);
 
-	  for (var user : unauthed) {
-		 mvc
-		 .perform(
-				 put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
-				 .header("Authorization", getJwt(user))
-		  			.contentType(MediaType.APPLICATION_JSON)
-			  		.content(content))
-		 .andExpect(status().isForbidden());
-	  }
+    for (var user : unauthed) {
+      mvc
+          .perform(
+              put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+                  .header("Authorization", getJwt(user))
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(content))
+          .andExpect(status().isForbidden());
+    }
 
 // also check for not authenticated
-	  mvc
-	  .perform(
-			  put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
-		  		.contentType(MediaType.APPLICATION_JSON)
-		  		.content(content))
-	  .andExpect(status().isForbidden());
+    mvc
+        .perform(
+            put(EndpointConstants.API_V_0_1_CUSTOMERS + "/loyalty/" + mockCustomer.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content))
+        .andExpect(status().isForbidden());
   }
 
   /**
@@ -331,7 +331,7 @@ public class CustomerControllerSecurityTests {
    *   <li>TRAVEL_AGENT</li>
    *   <li>EMPLOYEE</li>
    * </ul>
-   *
+   * <p>
    * CUSTOMER or DEFAULT should NOT be allowed
    * BUT any UNAUTHENTICATED usage is permitted (ie for a customer creating a new account).
    */

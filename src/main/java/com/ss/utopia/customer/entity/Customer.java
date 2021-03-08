@@ -25,7 +25,6 @@ import lombok.ToString;
 public class Customer {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(columnDefinition = "BINARY(16)")
   private UUID id;
 

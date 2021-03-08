@@ -73,15 +73,15 @@ public class CustomerController {
     log.info("GET Customer Loyalty Points when Customer id=" + customerId);
     return ResponseEntity.of(Optional.ofNullable(service.getCustomerLoyaltyPoints(customerId)));
   }
-  
+
   @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','TRAVEL_AGENT')")
   @PutMapping(value = "/loyalty/{customerId}",
-		  consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateCustomerloyaltyPoints(@PathVariable UUID customerId,
-		  						@Valid @RequestBody UpdateCustomerLoyaltyDto customerLoyaltyDto) {
-	  log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
-	  service.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
-	  return ResponseEntity.ok().build();
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+  public ResponseEntity<?> updateCustomerLoyaltyPoints(@PathVariable UUID customerId,
+                                                       @Valid @RequestBody UpdateCustomerLoyaltyDto customerLoyaltyDto) {
+    log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
+    service.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
+    return ResponseEntity.ok().build();
   }
 
   @CreateCustomerPermission

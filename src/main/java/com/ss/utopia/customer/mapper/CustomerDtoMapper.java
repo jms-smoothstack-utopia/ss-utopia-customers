@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.mapper;
 
 import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.CreateUserAccountDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
@@ -28,7 +29,6 @@ public class CustomerDtoMapper {
 
   public static Customer map(CreateCustomerDto dto) {
     return Customer.builder()
-        .id(dto.getId())
         .firstName(dto.getFirstName())
         .lastName(dto.getLastName())
         .email(dto.getEmail())
@@ -43,6 +43,13 @@ public class CustomerDtoMapper {
                               .zipcode(dto.getZipcode())
                               .build()))
         .paymentMethods(Collections.emptySet())
+        .build();
+  }
+
+  public static CreateUserAccountDto createUserAccountDto(CreateCustomerDto dto) {
+    return CreateUserAccountDto.builder()
+        .email(dto.getEmail())
+        .password(dto.getPassword())
         .build();
   }
 }
