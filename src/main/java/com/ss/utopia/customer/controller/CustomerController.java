@@ -77,7 +77,7 @@ public class CustomerController {
   @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','TRAVEL_AGENT')")
   @PutMapping(value = "/loyalty/{customerId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateCustomerloyaltyPoints(@PathVariable UUID customerId,
+  public ResponseEntity<?> updateCustomerLoyaltyPoints(@PathVariable UUID customerId,
                                                        @Valid @RequestBody UpdateCustomerLoyaltyDto customerLoyaltyDto) {
     log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
     service.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
