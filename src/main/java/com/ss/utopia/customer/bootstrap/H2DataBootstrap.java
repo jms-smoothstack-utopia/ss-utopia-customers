@@ -5,6 +5,7 @@ import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
@@ -31,6 +32,7 @@ public class H2DataBootstrap implements CommandLineRunner {
   private void loadCustomer1() {
     var customer = Customer.builder()
         .email("john_sample@example.com")
+        .id(UUID.randomUUID())
         .firstName("John")
         .lastName("Sample")
         .loyaltyPoints(0)
