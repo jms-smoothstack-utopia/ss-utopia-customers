@@ -25,9 +25,11 @@ public class CreateCustomerDto {
       + " at least one number,"
       + " and at least one special character from the following: !@#$%^&*-_=+,.?";
 
+  @NotNull
   @NotBlank(message = "First name is mandatory")
   private String firstName;
 
+  @NotNull
   @NotBlank(message = "Last name is mandatory")
   private String lastName;
 
@@ -43,21 +45,27 @@ public class CreateCustomerDto {
   @Pattern(regexp = REGEX, message = REGEX_MSG)
   private String password;
 
+  @NotNull
+  @NotBlank
   @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$", message = "Phone number must be in the form ###-###-####.")
   private String phoneNumber;
 
+  @NotNull
   @NotBlank(message = "Address line1 is mandatory")
   private String addrLine1;
 
   private String addrLine2;
 
+  @NotNull
   @NotBlank(message = "City is mandatory")
   private String city;
 
+  @NotNull
   @NotBlank(message = "State is mandatory")
   @Size(min = 2, max = 2, message = "State must consist of only 2 characters.")
   private String state;
 
+  @NotNull
   @NotBlank(message = "Zipcode is mandatory")
   @Pattern(regexp = "^\\d{5}(?:[-\\s]\\d{4})?$",
       message = "Zipcode does not meet expected format: '#####-####' or '#####'")

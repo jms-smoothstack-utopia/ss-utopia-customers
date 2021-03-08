@@ -6,7 +6,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Retention(RetentionPolicy.RUNTIME)
 @PreAuthorize("hasAnyRole('ADMIN', 'TRAVEL_AGENT', 'EMPLOYEE') "
-    + "OR hasRole('CUSTOMER') "
-    + "AND @customerAuthenticationManager.customerEmailMatches(authentication, #email)")
+    + " OR @customerAuthenticationManager.customerEmailMatches(authentication, #email)")
 public @interface GetCustomerByEmailPermission {
 }
