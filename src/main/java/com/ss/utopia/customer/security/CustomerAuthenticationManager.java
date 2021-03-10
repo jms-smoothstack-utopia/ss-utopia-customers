@@ -8,12 +8,20 @@ import org.springframework.stereotype.Component;
 public class CustomerAuthenticationManager {
 
   public boolean customerEmailMatches(Authentication authentication, String email) {
-    var authedEmail = (String) authentication.getPrincipal();
-    return authedEmail.equals(email);
+    try {
+      var principal = (JwtPrincipal) authentication.getPrincipal();
+      return principal.getEmail().equals(email);
+    } catch (ClassCastException ex) {
+      return false;
+    }
   }
 
   public boolean customerIdMatches(Authentication authentication, UUID id) {
-    var jwtOwnerId = UUID.fromString((String) authentication.getDetails());
-    return jwtOwnerId.equals(id);
+    try  {
+      var principal = (JwtPrincipal) authentication.getPrincipal();
+      return  principal.getUserId().equals(id);
+    } catch (ClassCastException ex)  {
+      return false;
+    }
   }
 }
