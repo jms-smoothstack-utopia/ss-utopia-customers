@@ -16,6 +16,7 @@ public class CustomerDtoMapper {
         .firstName(updateCustomerDto.getFirstName())
         .lastName(updateCustomerDto.getLastName())
         .email(updateCustomerDto.getEmail())
+        .phoneNumber(updateCustomerDto.getPhoneNumber())
         .addresses(Set.of(Address.builder()
                               .line1(updateCustomerDto.getAddrLine1())
                               .line2(updateCustomerDto.getAddrLine2())
@@ -24,6 +25,8 @@ public class CustomerDtoMapper {
                               .zipcode(updateCustomerDto.getZipcode())
                               .build()))
         .paymentMethods(Collections.emptySet())
+        .ticketEmails(updateCustomerDto.getTicketEmails())
+        .flightEmails(updateCustomerDto.getFlightEmails())
         .build();
   }
 
