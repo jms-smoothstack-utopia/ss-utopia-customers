@@ -38,10 +38,13 @@ public class ServiceAuthenticationProviderImpl implements ServiceAuthenticationP
 
   @Override
   public void refreshAuthorization() {
+    log.info("Refreshing authorization.");
     if (expiration != null && expiration.isAfter(ZonedDateTime.now().plusHours(1))) {
       log.warn("Authentication token is not expired.");
       return;
     }
+
+    checkCredentialsNotEmpty();
 
     var request = AuthenticationRequest.builder()
         .email(serviceAuthenticationConfiguration.getEmail())
@@ -65,6 +68,16 @@ public class ServiceAuthenticationProviderImpl implements ServiceAuthenticationP
     } catch (IOException ex) {
       log.error("Unable to parse Authorization Response.");
       throw new RuntimeException(ex);
+    }
+  }
+
+  private void checkCredentialsNotEmpty() {
+    var email = serviceAuthenticationConfiguration.getEmail();
+    var password = serviceAuthenticationConfiguration.getPassword();
+
+    if (email == null || password == null || email.isBlank() || password.isBlank()) {
+      log.error("Empty credentials. Cannot authenticate.");
+      throw new AuthenticationFailureException("Empty credentials.");
     }
   }
 }
