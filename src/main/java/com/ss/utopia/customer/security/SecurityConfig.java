@@ -32,6 +32,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.POST, EndpointConstants.API_V_0_1_CUSTOMERS).permitAll()
         //todo does this need preauthorization?
         .antMatchers(HttpMethod.DELETE, EndpointConstants.API_V_0_1_CUSTOMERS + "/confirm/**").permitAll()
+        .antMatchers(HttpMethod.GET, "/api-docs").permitAll()
         .anyRequest().authenticated()
         .and()
         .addFilter(new JwtAuthenticationVerificationFilter(authenticationManagerBean(),
