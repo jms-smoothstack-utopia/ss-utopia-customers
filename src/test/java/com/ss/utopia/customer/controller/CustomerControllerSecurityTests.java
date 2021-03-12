@@ -407,8 +407,8 @@ public class CustomerControllerSecurityTests {
   }
 
   @Test
-  void test_deleteCustomer_CanOnlyBePerformedByADMINOrOwningCustomer() throws Exception {
-    var alwaysAuthed = List.of(MockUser.ADMIN, MockUser.MATCH_CUSTOMER);
+  void test_deleteCustomer_OnlyAllowedByAdmin() throws Exception {
+    var alwaysAuthed = List.of(MockUser.ADMIN);
 
     for (var user : alwaysAuthed) {
       mvc.perform(
@@ -418,6 +418,7 @@ public class CustomerControllerSecurityTests {
     }
 
     var unauthed = List.of(MockUser.DEFAULT,
+                           MockUser.MATCH_CUSTOMER,
                            MockUser.UNMATCH_CUSTOMER,
                            MockUser.TRAVEL_AGENT,
                            MockUser.EMPLOYEE);
