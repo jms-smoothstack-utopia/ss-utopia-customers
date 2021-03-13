@@ -26,6 +26,7 @@ import com.ss.utopia.customer.exception.ExceptionControllerAdvisor;
 import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.service.CustomerService;
+import com.ss.utopia.customer.service.DeleteAccountService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,8 +55,9 @@ class CustomerControllerTest {
   public static final String DEFAULT_PAYMENT_ENDPOINT =
       CUSTOMER_ENDPOINT + "/" + validCustomerId + "/payment-method";
 
-  private final CustomerService service = Mockito.mock(CustomerService.class);
-  private final CustomerController controller = new CustomerController(service);
+  private final CustomerService customerService = Mockito.mock(CustomerService.class);
+  private final DeleteAccountService deleteAccountService = Mockito.mock(DeleteAccountService.class);
+  private final CustomerController controller = new CustomerController(customerService, deleteAccountService);
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
       .setControllerAdvice(new ExceptionControllerAdvisor())
@@ -69,7 +71,7 @@ class CustomerControllerTest {
 
   @BeforeEach
   void beforeEach() {
-    Mockito.reset(service);
+    Mockito.reset(customerService);
 
     // setup Customer objs
     validCustomer = new Customer();
@@ -143,7 +145,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getAllCustomers_ReturnsListWith200StatusCode() throws Exception {
-    when(service.getAllCustomers()).thenReturn(List.of(validCustomer));
+    when(customerService.getAllCustomers()).thenReturn(List.of(validCustomer));
 
     var result = mvc
         .perform(get(CUSTOMER_ENDPOINT))
@@ -159,7 +161,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getAllCustomers_ReturnsEmptyListWith204StatusCodeIfNoCustomers() throws Exception {
-    when(service.getAllCustomers()).thenReturn(Collections.emptyList());
+    when(customerService.getAllCustomers()).thenReturn(Collections.emptyList());
 
     mvc
         .perform(
@@ -169,7 +171,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getCustomerById_ReturnsValidCustomerWith200StatusCode() throws Exception {
-    when(service.getCustomerById(validCustomer.getId())).thenReturn(validCustomer);
+    when(customerService.getCustomerById(validCustomer.getId())).thenReturn(validCustomer);
 
     var result = mvc
         .perform(
@@ -186,7 +188,7 @@ class CustomerControllerTest {
   @Test
   void test_getCustomerById_Returns404OnInvalidId() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.getCustomerById(randomId)).thenThrow(new NoSuchCustomerException(randomId));
+    when(customerService.getCustomerById(randomId)).thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
         .perform(
@@ -198,7 +200,7 @@ class CustomerControllerTest {
   @Test
   void test_getCustomerLoyaltyPoints_ReturnsValidCustomerLoyaltyPointsWith200StatusCode()
       throws Exception {
-    when(service.getCustomerLoyaltyPoints(validCustomer.getId())).thenReturn(validCustomer.getLoyaltyPoints());
+    when(customerService.getCustomerLoyaltyPoints(validCustomer.getId())).thenReturn(validCustomer.getLoyaltyPoints());
 
     var result = mvc
         .perform(
@@ -215,7 +217,7 @@ class CustomerControllerTest {
   @Test
   void test_getCustomerLoyaltyPoints_Returns404StatusCode() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.getCustomerLoyaltyPoints(randomId))
+    when(customerService.getCustomerLoyaltyPoints(randomId))
         .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
@@ -226,7 +228,7 @@ class CustomerControllerTest {
 
   @Test
   void test_createNewCustomer_ReturnsCreatedIdAnd201StatusCodeOnValidDto() throws Exception {
-    when(service.createNewCustomer(validCreateCustomerDto))
+    when(customerService.createNewCustomer(validCreateCustomerDto))
         .thenReturn(validCustomer);
 
     var headerName = "Location";
@@ -349,7 +351,7 @@ class CustomerControllerTest {
   @Test
   void test_updateExistingCustomer_Returns404OnNonExistentCustomer() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class)))
+    when(customerService.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class)))
         .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
@@ -362,7 +364,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns409OnDuplicateEmail() throws Exception {
-    when(service.updateCustomer(validCustomer.getId(), validDto))
+    when(customerService.updateCustomer(validCustomer.getId(), validDto))
         .thenThrow(new DuplicateEmailException(validDto.getEmail()));
 
     mvc
@@ -376,7 +378,7 @@ class CustomerControllerTest {
 
   @Test
   void test_updateExistingCustomer_Returns200StatusCodeOnSuccess() throws Exception {
-    when(service.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class))).thenReturn(validCustomer);
+    when(customerService.updateCustomer(any(UUID.class), any(UpdateCustomerDto.class))).thenReturn(validCustomer);
 
     mvc
         .perform(
@@ -403,7 +405,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getPaymentMethod_Returns200AndExpectedResultOnValidInput() throws Exception {
-    when(service.getPaymentMethod(validCustomer.getId(), validPaymentMethod.getId()))
+    when(customerService.getPaymentMethod(validCustomer.getId(), validPaymentMethod.getId()))
         .thenReturn(validPaymentMethod);
 
     var result = mvc
@@ -419,7 +421,7 @@ class CustomerControllerTest {
   @Test
   void test_getPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.getPaymentMethod(any(UUID.class), anyLong()))
+    when(customerService.getPaymentMethod(any(UUID.class), anyLong()))
         .thenThrow(new NoSuchCustomerException(randomId));
 
     mvc
@@ -430,7 +432,7 @@ class CustomerControllerTest {
 
   @Test
   void test_getPaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
-    when(service.getPaymentMethod(validCustomer.getId(), -1L))
+    when(customerService.getPaymentMethod(validCustomer.getId(), -1L))
         .thenThrow(new NoSuchPaymentMethod(validCustomer.getId(), -1L));
 
     mvc
@@ -441,7 +443,7 @@ class CustomerControllerTest {
 
   @Test
   void test_addPaymentMethod_Returns201AndURIOnValidDto() throws Exception {
-    when(service.addPaymentMethod(validCustomer.getId(), validPaymentMethodDto))
+    when(customerService.addPaymentMethod(validCustomer.getId(), validPaymentMethodDto))
         .thenReturn(validPaymentMethod.getId());
 
     var headerName = "Location";
@@ -462,7 +464,7 @@ class CustomerControllerTest {
   @Test
   void test_addPaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
     var randomId = UUID.randomUUID();
-    when(service.addPaymentMethod(any(UUID.class), any(PaymentMethodDto.class)))
+    when(customerService.addPaymentMethod(any(UUID.class), any(PaymentMethodDto.class)))
         .thenThrow(new NoSuchCustomerException(randomId));
 
     var result = mvc
@@ -503,7 +505,7 @@ class CustomerControllerTest {
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
     doThrow(new NoSuchCustomerException(validCustomerId))
-        .when(service)
+        .when(customerService)
         .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
@@ -520,7 +522,7 @@ class CustomerControllerTest {
   @Test
   void test_updatePaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
     doThrow(new NoSuchPaymentMethod(validCustomerId, 1L))
-        .when(service)
+        .when(customerService)
         .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
 
     var result = mvc
@@ -548,7 +550,7 @@ class CustomerControllerTest {
   @Test
   void test_removePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
     doThrow(new NoSuchCustomerException(validCustomerId))
-        .when(service)
+        .when(customerService)
         .removePaymentMethod(any(UUID.class), anyLong());
 
     var result = mvc

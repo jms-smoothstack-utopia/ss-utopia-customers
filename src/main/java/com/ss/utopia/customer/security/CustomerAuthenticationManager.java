@@ -1,5 +1,6 @@
 package com.ss.utopia.customer.security;
 
+import com.ss.utopia.customer.dto.DeleteAccountDto;
 import java.util.UUID;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -17,10 +18,20 @@ public class CustomerAuthenticationManager {
   }
 
   public boolean customerIdMatches(Authentication authentication, UUID id) {
-    try  {
+    try {
       var principal = (JwtPrincipal) authentication.getPrincipal();
-      return  principal.getUserId().equals(id);
-    } catch (ClassCastException ex)  {
+      return principal.getUserId().equals(id);
+    } catch (ClassCastException ex) {
+      return false;
+    }
+  }
+
+  public boolean customerIdMatches(Authentication authentication,
+                                   DeleteAccountDto deleteAccountDto) {
+    try {
+      var principal = (JwtPrincipal) authentication.getPrincipal();
+      return principal.getUserId().equals(deleteAccountDto.getId());
+    } catch (ClassCastException ex) {
       return false;
     }
   }

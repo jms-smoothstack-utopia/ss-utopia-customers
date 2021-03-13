@@ -12,6 +12,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.DeleteAccountDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
@@ -20,6 +21,7 @@ import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.security.SecurityConstants;
 import com.ss.utopia.customer.service.CustomerService;
+import com.ss.utopia.customer.service.DeleteAccountService;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
@@ -50,6 +52,8 @@ public class CustomerControllerSecurityTests {
 
   @MockBean
   CustomerService customerService;
+  @MockBean
+  DeleteAccountService deleteAccountService;
   MockMvc mvc;
 
   PaymentMethod mockPaymentMethod = PaymentMethod.builder()
@@ -407,8 +411,8 @@ public class CustomerControllerSecurityTests {
   }
 
   @Test
-  void test_deleteCustomer_CanOnlyBePerformedByADMINOrOwningCustomer() throws Exception {
-    var alwaysAuthed = List.of(MockUser.ADMIN, MockUser.MATCH_CUSTOMER);
+  void test_deleteCustomer_OnlyAllowedByAdmin() throws Exception {
+    var alwaysAuthed = List.of(MockUser.ADMIN);
 
     for (var user : alwaysAuthed) {
       mvc.perform(
@@ -418,6 +422,7 @@ public class CustomerControllerSecurityTests {
     }
 
     var unauthed = List.of(MockUser.DEFAULT,
+                           MockUser.MATCH_CUSTOMER,
                            MockUser.UNMATCH_CUSTOMER,
                            MockUser.TRAVEL_AGENT,
                            MockUser.EMPLOYEE);
@@ -580,6 +585,61 @@ public class CustomerControllerSecurityTests {
         .perform(
             delete(url))
         .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void test_initiateDeleteCustomer_OnlyAllowedByAdminOrOwningCustomer() throws Exception {
+    var url = EndpointConstants.API_V_0_1_CUSTOMERS;
+
+    var content = new ObjectMapper().writeValueAsString(DeleteAccountDto.builder()
+                                                            .id(mockCustomer.getId())
+                                                            .email(mockCustomer.getEmail())
+                                                            .password("abCD1234!")
+                                                            .build());
+
+    var alwaysAuthed = List.of(MockUser.ADMIN,
+                               MockUser.MATCH_CUSTOMER);
+
+    for (var user : alwaysAuthed) {
+      mvc
+          .perform(
+              delete(url)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(content)
+                  .header("Authorization", getJwt(user)))
+          .andExpect(status().isNoContent());
+    }
+
+    var unauthed = List.of(MockUser.DEFAULT,
+                           MockUser.TRAVEL_AGENT,
+                           MockUser.EMPLOYEE,
+                           MockUser.UNMATCH_CUSTOMER);
+    for (var user : unauthed) {
+      mvc
+          .perform(
+              delete(url)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(content)
+                  .header("Authorization", getJwt(user)))
+          .andExpect(status().isForbidden());
+    }
+
+    mvc
+        .perform(
+            delete(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void test_confirmDeleteUser_DoesNotRequireAuthorization() throws Exception {
+    var url = EndpointConstants.API_V_0_1_CUSTOMERS + "/confirm/" + UUID.randomUUID();
+
+    mvc
+        .perform(
+            delete(url))
+        .andExpect(status().isNoContent());
   }
 
   enum MockUser {

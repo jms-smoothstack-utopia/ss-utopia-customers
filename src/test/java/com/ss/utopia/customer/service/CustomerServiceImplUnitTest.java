@@ -204,6 +204,7 @@ class CustomerServiceImplUnitTest {
   void test_createNewCustomer_ReturnsCustomerWithExpectedValuesOnSuccess() {
     when(repository.save(any(Customer.class))).thenReturn(firstCustomer);
     when(repository.findByEmail(anyString())).thenReturn(Optional.empty());
+    when(accountsClient.createNewAccount(any())).thenReturn(ResponseEntity.ok(UUID.randomUUID()));
 
     var result = service.createNewCustomer(dtoFirstCustomer);
     assertEquals(firstCustomer, result);

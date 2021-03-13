@@ -5,8 +5,7 @@ import java.lang.annotation.RetentionPolicy;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasRole('ADMIN')"
-    + " OR @customerAuthenticationManager.customerIdMatches(authentication, #customerId)")
-public @interface DeleteCustomerByIdPermission {
+@PreAuthorize("hasRole('ADMIN')")
+public @interface AdminOnlyPermission {
 
 }
