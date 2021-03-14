@@ -4,9 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import com.ss.utopia.customer.client.AccountsClient;
+import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
@@ -15,7 +17,6 @@ import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
 import com.ss.utopia.customer.repository.CustomerRepository;
-import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,7 +38,11 @@ class CustomerServiceImplUnitTest {
 
   private final CustomerRepository repository = Mockito.mock(CustomerRepository.class);
   private final AccountsClient accountsClient = Mockito.mock(AccountsClient.class);
-  private final CustomerService service = new CustomerServiceImpl(repository, accountsClient);
+  private final ServiceAuthenticationProvider serviceAuthenticationProvider = Mockito.mock(
+      ServiceAuthenticationProvider.class);
+  private final CustomerService service = new CustomerServiceImpl(repository,
+                                                                  accountsClient,
+                                                                  serviceAuthenticationProvider);
 
   @BeforeAll
   static void beforeAll() {
@@ -117,6 +122,10 @@ class CustomerServiceImplUnitTest {
   void beforeEach() {
     Mockito.reset(repository);
     Mockito.reset(accountsClient);
+    Mockito.reset(serviceAuthenticationProvider);
+
+    when(serviceAuthenticationProvider.getAuthorizationHeader())
+        .thenReturn("Bearer abc.def.xyz");
   }
 
   @Test
@@ -228,5 +237,26 @@ class CustomerServiceImplUnitTest {
 
     assertThrows(DuplicateEmailException.class,
                  () -> service.updateCustomer(secondCustomer.getId(), dtoSecondCustomer));
+  }
+
+  @Test
+  void test_updateCustomer_CallsAccountsClientUpdate() {
+    when(repository.findById(firstCustomerId))
+        .thenReturn(Optional.of(firstCustomer));
+
+    var oldEmail = firstCustomer.getEmail();
+    var newEmail = "some_new_email@test.com";
+
+    dtoFirstCustomer.setEmail("some_new_email@test.com");
+
+    var result = service.updateCustomer(firstCustomer.getId(),
+                           UpdateCustomerDto.builder().email(newEmail).build());
+
+    Mockito.verify(accountsClient, times(1))
+        .updateCustomerEmail(serviceAuthenticationProvider.getAuthorizationHeader(),
+                             firstCustomer.getId(),
+                             newEmail);
+    
+    firstCustomer.setEmail(oldEmail);
   }
 }

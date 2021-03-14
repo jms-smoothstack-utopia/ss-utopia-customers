@@ -1,6 +1,7 @@
 package com.ss.utopia.customer.service;
 
 import com.ss.utopia.customer.client.AccountsClient;
+import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
@@ -28,6 +29,7 @@ public class CustomerServiceImpl implements CustomerService {
 
   private final CustomerRepository customerRepository;
   private final AccountsClient accountsClient;
+  private final ServiceAuthenticationProvider serviceAuthenticationProvider;
 
   /**
    * Gets all {@link Customer} records.
@@ -117,6 +119,12 @@ public class CustomerServiceImpl implements CustomerService {
 
     var oldValue = getCustomerById(customerId);
     var newValue = CustomerDtoMapper.map(updateCustomerDto);
+
+    if (!oldValue.getEmail().equals(newValue.getEmail())) {
+      var header = serviceAuthenticationProvider.getAuthorizationHeader();
+      accountsClient.updateCustomerEmail(header, oldValue.getId(), newValue.getEmail());
+    }
+
     // set from old payment methods or it'll be erased
     newValue.setPaymentMethods(oldValue.getPaymentMethods());
     newValue.setId(customerId);
