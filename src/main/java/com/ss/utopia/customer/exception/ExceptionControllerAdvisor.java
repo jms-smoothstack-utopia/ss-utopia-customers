@@ -40,8 +40,8 @@ public class ExceptionControllerAdvisor {
 
   /**
    * Handles duplicate email constraint validation exceptions.
-   * <p>
-   * Returns the offending email in the returned map object.
+   *
+   * <p>Returns the offending email in the returned map object.
    *
    * @param ex an exception thrown as the result of a unique constraint violation for an email on
    *           creating a new customer.
@@ -62,8 +62,8 @@ public class ExceptionControllerAdvisor {
 
   /**
    * Handles validation exceptions on invalid DTO fields.
-   * <p>
-   * Creates a map of field name to error message for the return message.
+   *
+   * <p>Creates a map of field name to error message for the return message.
    *
    * @param ex an exception thrown during validation of DTO properties.
    * @return a map of the error message, status code, and offending fields and cause.
@@ -80,11 +80,11 @@ public class ExceptionControllerAdvisor {
 
     // get field name and error message as map
     var errors = ex.getBindingResult()
-        .getAllErrors()
-        .stream()
-        .collect(
-            Collectors.toMap(error -> ((FieldError) error).getField(),
-                             error -> getErrorMessageOrDefault((FieldError) error)));
+            .getAllErrors()
+            .stream()
+            .collect(
+                    Collectors.toMap(error -> ((FieldError) error).getField(),
+                        error -> getErrorMessageOrDefault((FieldError) error)));
 
     response.put("message", errors);
     return response;

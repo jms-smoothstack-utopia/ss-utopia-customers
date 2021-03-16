@@ -6,8 +6,8 @@ import java.util.UUID;
 
 /**
  * To be thrown when a {@link com.ss.utopia.customer.entity.Customer} cannot be found.
- * <p>
- * Contains the offending ID that can be retrieved with {@link #getCustomerId()}.
+ *
+ * <p>Contains the offending ID that can be retrieved with {@link #getCustomerId()}.
  */
 public class NoSuchCustomerException extends NoSuchElementException {
 

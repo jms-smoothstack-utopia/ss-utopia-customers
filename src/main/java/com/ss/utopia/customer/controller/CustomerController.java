@@ -75,14 +75,17 @@ public class CustomerController {
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable UUID customerId) {
     log.info("GET Customer Loyalty Points when Customer id=" + customerId);
-    return ResponseEntity.of(Optional.ofNullable(customerService.getCustomerLoyaltyPoints(customerId)));
+    return ResponseEntity.of(Optional.ofNullable(customerService
+                                                  .getCustomerLoyaltyPoints(customerId)));
   }
 
   @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','TRAVEL_AGENT')")
   @PutMapping(value = "/loyalty/{customerId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateCustomerLoyaltyPoints(@PathVariable UUID customerId,
-                                                       @Valid @RequestBody UpdateCustomerLoyaltyDto customerLoyaltyDto) {
+                                                       @Valid @RequestBody
+                                                       UpdateCustomerLoyaltyDto
+                                                               customerLoyaltyDto) {
     log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
     customerService.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
     return ResponseEntity.ok().build();
@@ -90,20 +93,20 @@ public class CustomerController {
 
   @CreateCustomerPermission
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody CreateCustomerDto customerDto) {
+  public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody
+                                                              CreateCustomerDto customerDto) {
     log.info("POST Customer");
     var createdCustomer = customerService.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
     return ResponseEntity.created(uri).body(createdCustomer);
   }
 
-  //todo DTO should be updated to allow multiple addresses (or a new one created).
-  // Additionally, any field not present should not cause an error and should instead just not be modified.
   @GetCustomerByIdPermission
   @PutMapping(value = "/{customerId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updateExistingCustomer(@PathVariable UUID customerId,
-                                                  @Valid @RequestBody UpdateCustomerDto updateCustomerDto) {
+                                                  @Valid @RequestBody
+                                                          UpdateCustomerDto updateCustomerDto) {
     log.info("PUT Customer id=" + customerId);
     customerService.updateCustomer(customerId, updateCustomerDto);
     return ResponseEntity.noContent().build();
@@ -120,7 +123,8 @@ public class CustomerController {
   @PreAuthorize("hasRole('ADMIN')"
       + " OR @customerAuthenticationManager.customerIdMatches(authentication, #deleteAccountDto)")
   @DeleteMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> initiateDeleteCustomer(@Valid @RequestBody DeleteAccountDto deleteAccountDto) {
+  public ResponseEntity<?> initiateDeleteCustomer(@Valid @RequestBody
+                                                            DeleteAccountDto deleteAccountDto) {
     log.info("Initiate delete id=" + deleteAccountDto.getId());
     deleteAccountService.requestDeletion(deleteAccountDto);
     return ResponseEntity.noContent().build();
@@ -158,7 +162,8 @@ public class CustomerController {
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> updatePaymentMethod(@PathVariable UUID customerId,
                                                @PathVariable Long paymentId,
-                                               @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+                                               @Valid @RequestBody
+                                                         PaymentMethodDto paymentMethodDto) {
     log.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
     customerService.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
     return ResponseEntity.noContent().build();

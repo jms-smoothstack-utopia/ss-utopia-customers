@@ -23,7 +23,8 @@ public interface AccountsClient {
 
   @PutMapping(value = EndpointConstants.API_V_0_1_ACCOUNTS + "/customer/{customerId}",
       consumes = MediaType.TEXT_PLAIN_VALUE)
-  ResponseEntity<?> updateCustomerEmail(@RequestHeader(value = "Authorization") String authorizationHeader,
+  ResponseEntity<?> updateCustomerEmail(@RequestHeader(value = "Authorization")
+                                        String authorizationHeader,
                                         @PathVariable UUID customerId,
                                         @RequestBody String newEmail);
 
@@ -31,10 +32,12 @@ public interface AccountsClient {
   ResponseEntity<UUID> createNewAccount(@RequestBody CreateUserAccountDto dto);
 
   @DeleteMapping(EndpointConstants.API_V_0_1_ACCOUNTS + "/customer")
-  ResponseEntity<?> initiateCustomerDeletion(@RequestHeader(value = "Authorization") String authorizationHeader,
+  ResponseEntity<?> initiateCustomerDeletion(@RequestHeader(value = "Authorization")
+                                             String authorizationHeader,
                                              @RequestBody DeleteAccountDto deleteAccountDto);
 
   @DeleteMapping(EndpointConstants.API_V_0_1_ACCOUNTS + "/customer/{confirmationToken}")
-  ResponseEntity<UUID> completeCustomerDeletion(@RequestHeader(value = "Authorization") String authorizationHeader,
+  ResponseEntity<UUID> completeCustomerDeletion(@RequestHeader(value = "Authorization")
+                                                String authorizationHeader,
                                                 @PathVariable UUID confirmationToken);
 }

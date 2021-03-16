@@ -53,20 +53,20 @@ public class CustomerServiceImpl implements CustomerService {
   public Customer getCustomerById(UUID id) {
     notNull(id);
     return customerRepository.findById(id)
-        .orElseThrow(() -> new NoSuchCustomerException(id));
+            .orElseThrow(() -> new NoSuchCustomerException(id));
   }
 
   @Override
   public Customer getCustomerByEmail(String email) {
     notNull(email);
     return customerRepository.findByEmail(email)
-        .orElseThrow(() -> new NoSuchCustomerException(email));
+            .orElseThrow(() -> new NoSuchCustomerException(email));
   }
 
   /**
    * Creates a new {@link Customer} record.
-   * <p>
-   * Does not allow creation if a record with an existing email is present.
+   *
+   * <p>Does not allow creation if a record with an existing email is present.
    *
    * @param customerDto a valid {@link UpdateCustomerDto}.
    * @return the created customer record.
@@ -77,9 +77,9 @@ public class CustomerServiceImpl implements CustomerService {
     var customer = CustomerDtoMapper.map(customerDto);
 
     customerRepository.findByEmail(customer.getEmail())
-        .ifPresent(c -> {
-          throw new DuplicateEmailException(c.getEmail());
-        });
+            .ifPresent(c -> {
+              throw new DuplicateEmailException(c.getEmail());
+            });
 
     var accountDto = CustomerDtoMapper.createUserAccountDto(customerDto);
 
@@ -96,8 +96,6 @@ public class CustomerServiceImpl implements CustomerService {
 
   /**
    * Updates an existing {@link Customer} account.
-   * <p>
-   * TODO: Update to allow multiple addr fields
    *
    * @param updateCustomerDto The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
@@ -110,8 +108,8 @@ public class CustomerServiceImpl implements CustomerService {
     notNull(customerId);
 
     var duplicateEmail = customerRepository.findByEmail(updateCustomerDto.getEmail())
-        .stream()
-        .anyMatch(customer -> !customer.getId().equals(customerId));
+            .stream()
+            .anyMatch(customer -> !customer.getId().equals(customerId));
 
     if (duplicateEmail) {
       throw new DuplicateEmailException(updateCustomerDto.getEmail());
@@ -141,7 +139,7 @@ public class CustomerServiceImpl implements CustomerService {
     notNull(id);
 
     customerRepository.findById(id)
-        .ifPresent(customerRepository::delete);
+            .ifPresent(customerRepository::delete);
   }
 
   /**
@@ -160,14 +158,14 @@ public class CustomerServiceImpl implements CustomerService {
     notNull(customerId, paymentId);
 
     return customerRepository.findById(customerId)
-        .map(customer -> customer.getPaymentMethods()
-            .stream()
-            .filter(paymentMethod -> paymentMethod.getId().equals(paymentId))
-            // sanity check, don't allow updates if not owner
-            .filter(paymentMethod -> paymentMethod.getOwnerId().equals(customerId))
-            .findFirst()
-            .orElseThrow(() -> new NoSuchPaymentMethod(customerId, paymentId)))
-        .orElseThrow(() -> new NoSuchCustomerException(customerId));
+            .map(customer -> customer.getPaymentMethods()
+                    .stream()
+                    .filter(paymentMethod -> paymentMethod.getId().equals(paymentId))
+                    // sanity check, don't allow updates if not owner
+                    .filter(paymentMethod -> paymentMethod.getOwnerId().equals(customerId))
+                    .findFirst()
+                    .orElseThrow(() -> new NoSuchPaymentMethod(customerId, paymentId)))
+            .orElseThrow(() -> new NoSuchCustomerException(customerId));
   }
 
   /**
@@ -182,8 +180,7 @@ public class CustomerServiceImpl implements CustomerService {
   public Long addPaymentMethod(UUID customerId, PaymentMethodDto paymentMethodDto) {
     notNull(customerId);
 
-    var customer = getCustomerById(customerId);
-
+    final var customer = getCustomerById(customerId);
     var method = new PaymentMethod();
     method.setOwnerId(customerId);
     method.setAccountNum(paymentMethodDto.getAccountNum());
@@ -194,11 +191,11 @@ public class CustomerServiceImpl implements CustomerService {
 
     // get the ID from the created payment method and return it
     return customer.getPaymentMethods()
-        .stream()
-        .filter(m -> m.getAccountNum().equals(method.getAccountNum()))
-        .mapToLong(PaymentMethod::getId)
-        .findFirst()
-        .orElseThrow();
+            .stream()
+            .filter(m -> m.getAccountNum().equals(method.getAccountNum()))
+            .mapToLong(PaymentMethod::getId)
+            .findFirst()
+            .orElseThrow();
   }
 
   /**
@@ -221,17 +218,17 @@ public class CustomerServiceImpl implements CustomerService {
     var customer = getCustomerById(customerId);
 
     customer.getPaymentMethods()
-        .stream()
-        .filter(m -> m.getId().equals(paymentId))
-        .findFirst()
-        .ifPresentOrElse(method -> {  // update method if present
-                           method.setAccountNum(paymentMethodDto.getAccountNum());
-                           method.setNotes(paymentMethodDto.getNotes());
-                           customerRepository.save(customer);
-                         },
-                         () -> { // else throw ex
-                           throw new NoSuchPaymentMethod(customerId, paymentId);
-                         });
+            .stream()
+            .filter(m -> m.getId().equals(paymentId))
+            .findFirst()
+            .ifPresentOrElse(method -> {  // update method if present
+              method.setAccountNum(paymentMethodDto.getAccountNum());
+              method.setNotes(paymentMethodDto.getNotes());
+              customerRepository.save(customer);
+            },
+              () -> { // else throw ex
+                throw new NoSuchPaymentMethod(customerId, paymentId);
+              });
   }
 
   /**
@@ -247,7 +244,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     var customer = getCustomerById(customerId);
     customer.getPaymentMethods()
-        .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
+            .removeIf(paymentMethod -> paymentMethod.getId().equals(paymentId));
     customerRepository.save(customer);
   }
 
@@ -262,14 +259,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     var points = customer.getLoyaltyPoints();
     if (customerLoyaltyDto.getIncrement()) {
-      //TODO: If loyalty point maximum is ever added, throw IllegalPointChange here
+      //If loyalty point maximum is ever added, throw IllegalPointChange here
       points += customerLoyaltyDto.getPointsToChange();
     } else {
       points -= customerLoyaltyDto.getPointsToChange();
       if (points < 0) {
         throw new IllegalPointChangeException(id,
-                                              customer.getLoyaltyPoints(),
-                                              customerLoyaltyDto.getPointsToChange());
+                customer.getLoyaltyPoints(),
+                customerLoyaltyDto.getPointsToChange());
       }
     }
     customer.setLoyaltyPoints(points);

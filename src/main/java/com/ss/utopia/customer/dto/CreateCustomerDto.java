@@ -18,7 +18,10 @@ import lombok.ToString;
 @Builder
 public class CreateCustomerDto {
 
-  public static final String REGEX = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*-_=+,.?])[A-Za-z\\d!@#$%^&*-_=+,.?]{10,128}$";
+  //regex split to make checkstyle happy
+  public static final String REGEX
+      = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*"
+        + "[!@#$%^&*-_=+,.?])[A-Za-z\\d!@#$%^&*-_=+,.?]{10,128}$";
   public static final String REGEX_MSG = "Password must be between 10 and 128 characters,"
       + " contain at least one lowercase letter,"
       + " at least one uppercase letter,"
@@ -47,7 +50,8 @@ public class CreateCustomerDto {
 
   @NotNull
   @NotBlank
-  @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$", message = "Phone number must be in the form ###-###-####.")
+  @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$",
+          message = "Phone number must be in the form ###-###-####.")
   private String phoneNumber;
 
   @NotNull

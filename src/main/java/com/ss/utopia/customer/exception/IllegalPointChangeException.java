@@ -6,11 +6,11 @@ import lombok.Getter;
 public class IllegalPointChangeException extends IllegalStateException {
 
   @Getter
-  final private UUID customerId;
+  private final UUID customerId;
   @Getter
-  final private Integer currentPoints;
+  private final Integer currentPoints;
   @Getter
-  final private Integer attemptedDelta;
+  private final Integer attemptedDelta;
 
   public IllegalPointChangeException(UUID customerId,
                                      Integer currentPoints,
