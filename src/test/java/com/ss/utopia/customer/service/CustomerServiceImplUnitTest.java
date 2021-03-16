@@ -10,12 +10,14 @@ import static org.mockito.Mockito.when;
 import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.DuplicateEmailException;
+import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import java.util.List;
 import java.util.Optional;
@@ -171,6 +173,19 @@ class CustomerServiceImplUnitTest {
   }
 
   @Test
+  void test_getCustomerByEmail_ReturnsExpectedResult() {
+    when(repository.findByEmail(firstCustomer.getEmail())).thenReturn(Optional.of(firstCustomer));
+
+    var customer = service.getCustomerByEmail(firstCustomer.getEmail());
+    assertEquals(firstCustomer, customer);
+  }
+
+  @Test
+  void test_getCustomerByEmail_ThrowsIllegalArgumentExceptionOnNullId() {
+    assertThrows(IllegalArgumentException.class, () -> service.getCustomerByEmail(null));
+  }
+
+  @Test
   void test_getCustomerLoyaltyPointsById_ReturnsCustomerWithExpectedValuesOnSuccess() {
     when(repository.findById(firstCustomer.getId())).thenReturn(Optional.of(firstCustomer));
     var result = service.getCustomerLoyaltyPoints(firstCustomer.getId());
@@ -221,8 +236,7 @@ class CustomerServiceImplUnitTest {
 
   @Test
   void test_createNewCustomer_ThrowsDuplicateEmailExceptionOnDuplicateEmailRecord() {
-    when(repository.findByEmail(firstCustomer.getEmail()))
-        .thenThrow(new DuplicateEmailException(firstCustomer.getEmail()));
+    when(repository.findByEmail(firstCustomer.getEmail())).thenReturn(Optional.of(firstCustomer));
 
     assertThrows(DuplicateEmailException.class,
                  () -> service.createNewCustomer(CreateCustomerDto.builder()
@@ -232,11 +246,22 @@ class CustomerServiceImplUnitTest {
 
   @Test
   void test_updateCustomer_ThrowsDuplicateEmailExceptionOnDuplicateEmailRecord() {
-    when(repository.findByEmail(secondCustomer.getEmail()))
-        .thenThrow(new DuplicateEmailException(secondCustomer.getEmail()));
+    when(repository.findByEmail(firstCustomer.getEmail())).thenReturn(Optional.of(firstCustomer));
+    when(repository.findByEmail(secondCustomer.getEmail())).thenReturn(Optional.of(secondCustomer));
+
+    var dtoForUpdate = UpdateCustomerDto.builder()
+            .firstName(secondCustomer.getFirstName())
+            .lastName(secondCustomer.getLastName())
+            .email(firstCustomer.getEmail())    //trying to use firstCustomer's email!
+            .addrLine1("456 Strawberry Ln")
+            .addrLine2(null)
+            .city("Las Vegas")
+            .state("NV")
+            .zipcode("98765")
+            .build();
 
     assertThrows(DuplicateEmailException.class,
-                 () -> service.updateCustomer(secondCustomer.getId(), dtoSecondCustomer));
+                 () -> service.updateCustomer(secondCustomer.getId(), dtoForUpdate));
   }
 
   @Test
@@ -259,4 +284,21 @@ class CustomerServiceImplUnitTest {
     
     firstCustomer.setEmail(oldEmail);
   }
+
+  /*  bad/possibly unnecessary, might refactor or delete addPaymentMethod
+  @Test
+  void test_addPaymentMethod_AddsPaymentMethod() {
+    when(repository.findById(firstCustomer.getId())).thenReturn(Optional.of(firstCustomer));
+    //might need to mock repository.save here
+
+    var dtoPaymentMethod = PaymentMethodDto.builder()
+            .accountNum("555")
+            .notes("DTO for test")
+            .build();
+
+    service.addPaymentMethod(firstCustomer.getId(), dtoPaymentMethod);
+    assertEquals(firstCustomer.getPaymentMethods().size(), 2);
+
+  }
+  */
 }
