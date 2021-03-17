@@ -27,7 +27,10 @@
       **/bootstrap/*.java,
       **/controller/EndpointConstants.java,
       **/security/*.java,
-      **/CustomerApplication.java
+      **/CustomerApplication.java,
+      **/authentication/AuthenticationRequest.java,
+      **/authentication/AuthenticationResponse.java,
+      **/authentication/ServiceAuthenticationConfiguration.java
     </sonar.coverage.exclusions>
   </properties>
 
