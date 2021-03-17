@@ -76,16 +76,16 @@ public class CustomerController {
   public ResponseEntity<Integer> getCustomerLoyaltyPoints(@PathVariable UUID customerId) {
     log.info("GET Customer Loyalty Points when Customer id=" + customerId);
     return ResponseEntity.of(Optional.ofNullable(customerService
-                                                  .getCustomerLoyaltyPoints(customerId)));
+                                                     .getCustomerLoyaltyPoints(customerId)));
   }
 
   @PreAuthorize("hasAnyRole('ADMIN','EMPLOYEE','TRAVEL_AGENT')")
   @PutMapping(value = "/loyalty/{customerId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateCustomerLoyaltyPoints(@PathVariable UUID customerId,
-                                                       @Valid @RequestBody
-                                                       UpdateCustomerLoyaltyDto
-                                                               customerLoyaltyDto) {
+  public ResponseEntity<Void> updateCustomerLoyaltyPoints(@PathVariable UUID customerId,
+                                                          @Valid @RequestBody
+                                                              UpdateCustomerLoyaltyDto
+                                                              customerLoyaltyDto) {
     log.info("PUT Update Customer loyalty points when Customer ID=" + customerId);
     customerService.updateCustomerLoyaltyPoints(customerId, customerLoyaltyDto);
     return ResponseEntity.ok().build();
@@ -94,7 +94,7 @@ public class CustomerController {
   @CreateCustomerPermission
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<Customer> createNewCustomer(@Valid @RequestBody
-                                                              CreateCustomerDto customerDto) {
+                                                        CreateCustomerDto customerDto) {
     log.info("POST Customer");
     var createdCustomer = customerService.createNewCustomer(customerDto);
     var uri = URI.create(MAPPING + "/" + createdCustomer.getId());
@@ -104,9 +104,9 @@ public class CustomerController {
   @GetCustomerByIdPermission
   @PutMapping(value = "/{customerId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updateExistingCustomer(@PathVariable UUID customerId,
-                                                  @Valid @RequestBody
-                                                          UpdateCustomerDto updateCustomerDto) {
+  public ResponseEntity<Void> updateExistingCustomer(@PathVariable UUID customerId,
+                                                     @Valid @RequestBody
+                                                         UpdateCustomerDto updateCustomerDto) {
     log.info("PUT Customer id=" + customerId);
     customerService.updateCustomer(customerId, updateCustomerDto);
     return ResponseEntity.noContent().build();
@@ -123,15 +123,15 @@ public class CustomerController {
   @PreAuthorize("hasRole('ADMIN')"
       + " OR @customerAuthenticationManager.customerIdMatches(authentication, #deleteAccountDto)")
   @DeleteMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> initiateDeleteCustomer(@Valid @RequestBody
-                                                            DeleteAccountDto deleteAccountDto) {
+  public ResponseEntity<Void> initiateDeleteCustomer(@Valid @RequestBody
+                                                         DeleteAccountDto deleteAccountDto) {
     log.info("Initiate delete id=" + deleteAccountDto.getId());
     deleteAccountService.requestDeletion(deleteAccountDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteMapping(value = "/confirm/{confirmationToken}")
-  public ResponseEntity<?> confirmDeleteCustomer(@PathVariable UUID confirmationToken) {
+  public ResponseEntity<Void> confirmDeleteCustomer(@PathVariable UUID confirmationToken) {
     log.info("Confirm delete token=" + confirmationToken);
     deleteAccountService.finalizeDeletion(confirmationToken);
     return ResponseEntity.noContent().build();
@@ -142,15 +142,16 @@ public class CustomerController {
       produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<PaymentMethod> getPaymentMethod(@PathVariable UUID customerId,
                                                         @PathVariable Long paymentId) {
-    log.info("GET PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+    log.info("GET PaymentMethod customerId,paymentId=" + customerId + "," + paymentId);
     return ResponseEntity.of(Optional.of(customerService.getPaymentMethod(customerId, paymentId)));
   }
 
   @GetCustomerByIdPermission
   @PostMapping(value = "/{customerId}/payment-method",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> addPaymentMethod(@PathVariable UUID customerId,
-                                            @Valid @RequestBody PaymentMethodDto paymentMethodDto) {
+  public ResponseEntity<Void> addPaymentMethod(@PathVariable UUID customerId,
+                                               @Valid @RequestBody
+                                                   PaymentMethodDto paymentMethodDto) {
     log.info("POST PaymentMethod id=" + customerId);
     var paymentId = customerService.addPaymentMethod(customerId, paymentMethodDto);
     var uri = URI.create(MAPPING + "/" + customerId + "/payment-method/" + paymentId);
@@ -160,20 +161,20 @@ public class CustomerController {
   @GetCustomerByIdPermission
   @PutMapping(value = "/{customerId}/payment-method/{paymentId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<?> updatePaymentMethod(@PathVariable UUID customerId,
-                                               @PathVariable Long paymentId,
-                                               @Valid @RequestBody
-                                                         PaymentMethodDto paymentMethodDto) {
-    log.info("PUT PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+  public ResponseEntity<Void> updatePaymentMethod(@PathVariable UUID customerId,
+                                                  @PathVariable Long paymentId,
+                                                  @Valid @RequestBody
+                                                      PaymentMethodDto paymentMethodDto) {
+    log.info("PUT PaymentMethod customerId,paymentId=" + customerId + "," + paymentId);
     customerService.updatePaymentMethod(customerId, paymentId, paymentMethodDto);
     return ResponseEntity.noContent().build();
   }
 
   @DeleteCustomerByIdPermission
   @DeleteMapping("/{customerId}/payment-method/{paymentId}")
-  public ResponseEntity<?> removePaymentMethod(@PathVariable UUID customerId,
-                                               @PathVariable Long paymentId) {
-    log.info("DELETE PaymentMethod customerId=" + customerId + ", paymentId=" + paymentId);
+  public ResponseEntity<Void> removePaymentMethod(@PathVariable UUID customerId,
+                                                  @PathVariable Long paymentId) {
+    log.info("DELETE PaymentMethod customerId,paymentId=" + customerId + "," + paymentId);
     customerService.removePaymentMethod(customerId, paymentId);
     return ResponseEntity.noContent().build();
   }

@@ -1,6 +1,5 @@
 package com.ss.utopia.customer.dto;
 
-import java.util.UUID;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -21,7 +20,7 @@ public class CreateCustomerDto {
   //regex split to make checkstyle happy
   public static final String REGEX
       = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*"
-        + "[!@#$%^&*-_=+,.?])[A-Za-z\\d!@#$%^&*-_=+,.?]{10,128}$";
+      + "[!@#$%^&*-_=+,.?])[A-Za-z\\d!@#$%^&*-_=+,.?]{10,128}$";
   public static final String REGEX_MSG = "Password must be between 10 and 128 characters,"
       + " contain at least one lowercase letter,"
       + " at least one uppercase letter,"
@@ -51,7 +50,7 @@ public class CreateCustomerDto {
   @NotNull
   @NotBlank
   @Pattern(regexp = "^\\d{3}-\\d{3}-\\d{4}$",
-          message = "Phone number must be in the form ###-###-####.")
+      message = "Phone number must be in the form ###-###-####.")
   private String phoneNumber;
 
   @NotNull
@@ -74,8 +73,8 @@ public class CreateCustomerDto {
   @Pattern(regexp = "^\\d{5}(?:[-\\s]\\d{4})?$",
       message = "Zipcode does not meet expected format: '#####-####' or '#####'")
   private String zipcode;
-  
+
   private Boolean ticketEmails;
-  
+
   private Boolean flightEmails;
 }
