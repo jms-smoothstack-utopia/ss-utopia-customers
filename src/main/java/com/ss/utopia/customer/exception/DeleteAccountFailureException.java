@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 public class DeleteAccountFailureException extends RuntimeException {
 
   @Getter
-  private final ResponseEntity<UUID> responseEntity;
+  private final transient ResponseEntity<UUID> responseEntity;
   @Getter
   private final UUID confirmationToken;
 

@@ -2,6 +2,7 @@ package com.ss.utopia.customer.client.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ss.utopia.customer.client.AccountsClient;
+import com.ss.utopia.customer.exception.AccountsClientException;
 import com.ss.utopia.customer.exception.AuthenticationFailureException;
 import java.io.IOException;
 import java.time.Instant;
@@ -19,8 +20,8 @@ public class ServiceAuthenticationProviderImpl implements ServiceAuthenticationP
   private final AccountsClient accountsClient;
   private final ObjectMapper objectMapper;
   private final ServiceAuthenticationConfiguration serviceAuthenticationConfiguration;
-  private volatile String authorizationHeader;
-  private volatile ZonedDateTime expiration;
+  private String authorizationHeader;
+  private ZonedDateTime expiration;
 
   @Override
   public String getAuthorizationHeader() {
@@ -67,7 +68,7 @@ public class ServiceAuthenticationProviderImpl implements ServiceAuthenticationP
       }
     } catch (IOException ex) {
       log.error("Unable to parse Authorization Response.");
-      throw new RuntimeException(ex);
+      throw new AccountsClientException(ex);
     }
   }
 

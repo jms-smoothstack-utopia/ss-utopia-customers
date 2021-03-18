@@ -6,8 +6,8 @@ import java.util.UUID;
 /**
  * Exception to be thrown when a {@link com.ss.utopia.customer.entity.PaymentMethod} cannot be
  * located or does not belong to the given {@link com.ss.utopia.customer.entity.Customer}.
- * <p>
- * Offending IDs can be retrieved with {@link #getCustomerId()} and {@link #getPaymentId()}.
+ *
+ * <p>Offending IDs can be retrieved with {@link #getCustomerId()} and {@link #getPaymentId()}.
  */
 public class NoSuchPaymentMethod extends NoSuchElementException {
 

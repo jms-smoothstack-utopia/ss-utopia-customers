@@ -24,7 +24,6 @@ public class SecurityConstants {
   }
 
   public Date getExpiresAt() {
-    //todo possible concern with different timezones between services?
     return new Date(System.currentTimeMillis() + jwtExpirationDuration);
   }
 }
