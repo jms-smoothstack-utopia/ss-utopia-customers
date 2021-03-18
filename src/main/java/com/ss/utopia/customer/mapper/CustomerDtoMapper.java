@@ -10,6 +10,8 @@ import java.util.Set;
 
 public class CustomerDtoMapper {
 
+  private CustomerDtoMapper() {}
+
   public static Customer map(UpdateCustomerDto updateCustomerDto) {
 
     return Customer.builder()

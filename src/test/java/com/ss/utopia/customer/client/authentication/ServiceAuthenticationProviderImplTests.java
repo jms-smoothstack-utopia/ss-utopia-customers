@@ -49,6 +49,16 @@ public class ServiceAuthenticationProviderImplTests {
   }
 
   @Test
+  void test_getEmail_ShouldReturnEmail () {
+    assertEquals("test@test.com", serviceAuthenticationConfiguration.getEmail());
+  }
+
+  @Test
+  void test_getPassword_ShouldReturnPassword () {
+    assertEquals("password", serviceAuthenticationConfiguration.getPassword());
+  }
+
+  @Test
   void test_getAuthorizationHeader_ShouldNotReturnNullOnFreshInstance() {
     var result = serviceAuthenticationProvider.getAuthorizationHeader();
     assertNotNull(result);

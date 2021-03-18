@@ -65,8 +65,8 @@ public class CustomerServiceImpl implements CustomerService {
 
   /**
    * Creates a new {@link Customer} record.
-   * <p>
-   * Does not allow creation if a record with an existing email is present.
+   *
+   * <p>Does not allow creation if a record with an existing email is present.
    *
    * @param customerDto a valid {@link UpdateCustomerDto}.
    * @return the created customer record.
@@ -96,8 +96,6 @@ public class CustomerServiceImpl implements CustomerService {
 
   /**
    * Updates an existing {@link Customer} account.
-   * <p>
-   * TODO: Update to allow multiple addr fields
    *
    * @param updateCustomerDto The {@link Customer} account to update.
    * @return the updated {@link Customer} from saving changes.
@@ -183,14 +181,14 @@ public class CustomerServiceImpl implements CustomerService {
     notNull(customerId);
 
     var customer = getCustomerById(customerId);
-
-    var method = new PaymentMethod();
-    method.setOwnerId(customerId);
-    method.setAccountNum(paymentMethodDto.getAccountNum());
-    method.setNotes(paymentMethodDto.getNotes());
+    var method = PaymentMethod.builder()
+        .ownerId(customerId)
+        .accountNum(paymentMethodDto.getAccountNum())
+        .notes(paymentMethodDto.getNotes())
+        .build();
     customer.getPaymentMethods().add(method);
 
-    customerRepository.save(customer);
+    customer = customerRepository.save(customer);
 
     // get the ID from the created payment method and return it
     return customer.getPaymentMethods()
@@ -216,22 +214,22 @@ public class CustomerServiceImpl implements CustomerService {
   public void updatePaymentMethod(UUID customerId,
                                   Long paymentId,
                                   PaymentMethodDto paymentMethodDto) {
-    notNull(customerId, paymentId);
+    notNull(customerId, paymentId, paymentMethodDto);
 
     var customer = getCustomerById(customerId);
 
     customer.getPaymentMethods()
-        .stream()
-        .filter(m -> m.getId().equals(paymentId))
-        .findFirst()
-        .ifPresentOrElse(method -> {  // update method if present
-                           method.setAccountNum(paymentMethodDto.getAccountNum());
-                           method.setNotes(paymentMethodDto.getNotes());
-                           customerRepository.save(customer);
-                         },
-                         () -> { // else throw ex
-                           throw new NoSuchPaymentMethod(customerId, paymentId);
-                         });
+            .stream()
+            .filter(m -> m.getId().equals(paymentId))
+            .findFirst()
+            .ifPresentOrElse(method -> {  // update method if present
+              method.setAccountNum(paymentMethodDto.getAccountNum());
+              method.setNotes(paymentMethodDto.getNotes());
+              customerRepository.save(customer);
+            },
+              () -> { // else throw ex
+                throw new NoSuchPaymentMethod(customerId, paymentId);
+              });
   }
 
   /**
@@ -262,14 +260,14 @@ public class CustomerServiceImpl implements CustomerService {
 
     var points = customer.getLoyaltyPoints();
     if (customerLoyaltyDto.getIncrement()) {
-      //TODO: If loyalty point maximum is ever added, throw IllegalPointChange here
+      //If loyalty point maximum is ever added, throw IllegalPointChange here
       points += customerLoyaltyDto.getPointsToChange();
     } else {
       points -= customerLoyaltyDto.getPointsToChange();
       if (points < 0) {
         throw new IllegalPointChangeException(id,
-                                              customer.getLoyaltyPoints(),
-                                              customerLoyaltyDto.getPointsToChange());
+                customer.getLoyaltyPoints(),
+                customerLoyaltyDto.getPointsToChange());
       }
     }
     customer.setLoyaltyPoints(points);
@@ -284,21 +282,8 @@ public class CustomerServiceImpl implements CustomerService {
   private void notNull(Object... ids) {
     for (var i : ids) {
       if (i == null) {
-        throw new IllegalArgumentException("ID cannot be null.");
+        throw new IllegalArgumentException("Expected value but received null.");
       }
     }
   }
-
-  /**
-   * Util method to check for null ID values.
-   *
-   * @param customerId UUID to check.
-   * @param paymentId  long payment ID to check.
-   */
-  private void notNull(UUID customerId, Long paymentId) {
-    if ((customerId == null) || (paymentId == null)) {
-      throw new IllegalArgumentException("ID cannot be null.");
-    }
-  }
-
 }

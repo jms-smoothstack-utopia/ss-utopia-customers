@@ -6,23 +6,22 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 /**
  * Permissions for creating a new Customer entity.
- * <p>
- * ALLOW:
+ *
+ * <p>ALLOW:
  * <ul>
  *   <li>ADMIN</li>
  *   <li>TRAVEL_AGENT</li>
  *   <li>EMPLOYEE</li>
  *   <li>UNAUTHENTICATED (ie for a customer creating a new account)</li>
  * </ul>
- * <p>
- * <p>
- * DENY:
+ *
+ * <p><p>DENY:
  * <ul>
  *   <li>DEFAULT</li>
  *   <li>CUSTOMER</li>
  * </ul>
- * <p>
- * An example of a deny is a customer attempting to create a new record.
+ *
+ * <p>An example of a deny is a customer attempting to create a new record.
  * This should be denied because they already have an existing record.
  * They should be logged out to create a new, different record.
  */

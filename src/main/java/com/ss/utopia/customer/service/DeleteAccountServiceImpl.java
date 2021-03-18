@@ -1,9 +1,9 @@
 package com.ss.utopia.customer.service;
 
 import com.ss.utopia.customer.client.AccountsClient;
+import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
 import com.ss.utopia.customer.dto.DeleteAccountDto;
 import com.ss.utopia.customer.exception.DeleteAccountFailureException;
-import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
 import feign.FeignException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
