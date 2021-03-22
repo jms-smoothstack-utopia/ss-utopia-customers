@@ -11,7 +11,7 @@
   </parent>
   <groupId>com.github.jms-smoothstack-utopia</groupId>
   <artifactId>ss-utopia-customer</artifactId>
-  <version>1.0</version>
+  <version>1.1-SNAPSHOT</version>
   <name>Utopia Customers API</name>
   <description>API for customer account management</description>
   <properties>
