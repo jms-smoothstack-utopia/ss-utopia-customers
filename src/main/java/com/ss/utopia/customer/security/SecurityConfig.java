@@ -33,6 +33,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .antMatchers(HttpMethod.DELETE,
                      EndpointConstants.API_V_0_1_CUSTOMERS + "/confirm/**").permitAll()
         .antMatchers(HttpMethod.GET, "/api-docs").permitAll()
+        .antMatchers(HttpMethod.GET, "/swagger-ui.html")
+        .permitAll()
+        .antMatchers(HttpMethod.GET, "/swagger-ui/**")
+        .permitAll()
         .anyRequest().authenticated()
         .and()
         .addFilter(new JwtAuthenticationVerificationFilter(authenticationManagerBean(),
