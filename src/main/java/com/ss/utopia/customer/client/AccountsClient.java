@@ -6,6 +6,7 @@ import com.ss.utopia.customer.dto.CreateUserAccountDto;
 import com.ss.utopia.customer.dto.DeleteAccountDto;
 import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,7 +16,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient("utopia-auth-service")
+@Profile("ecs")
+@FeignClient(name = "utopia-auth-service", url = "http://utopia-auth-service:8089")
 public interface AccountsClient {
 
   @PostMapping(value = "/login")
@@ -24,20 +26,20 @@ public interface AccountsClient {
   @PutMapping(value = EndpointConstants.API_V_0_1_ACCOUNTS + "/customer/{customerId}",
       consumes = MediaType.TEXT_PLAIN_VALUE)
   ResponseEntity<Void> updateCustomerEmail(@RequestHeader(value = "Authorization")
-                                        String authorizationHeader,
-                                        @PathVariable UUID customerId,
-                                        @RequestBody String newEmail);
+                                               String authorizationHeader,
+                                           @PathVariable UUID customerId,
+                                           @RequestBody String newEmail);
 
   @PostMapping(EndpointConstants.API_V_0_1_ACCOUNTS)
   ResponseEntity<UUID> createNewAccount(@RequestBody CreateUserAccountDto dto);
 
   @DeleteMapping(EndpointConstants.API_V_0_1_ACCOUNTS + "/customer")
   ResponseEntity<Void> initiateCustomerDeletion(@RequestHeader(value = "Authorization")
-                                             String authorizationHeader,
-                                             @RequestBody DeleteAccountDto deleteAccountDto);
+                                                    String authorizationHeader,
+                                                @RequestBody DeleteAccountDto deleteAccountDto);
 
   @DeleteMapping(EndpointConstants.API_V_0_1_ACCOUNTS + "/customer/{confirmationToken}")
   ResponseEntity<UUID> completeCustomerDeletion(@RequestHeader(value = "Authorization")
-                                                String authorizationHeader,
+                                                    String authorizationHeader,
                                                 @PathVariable UUID confirmationToken);
 }
