@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -54,6 +56,9 @@ class CustomerControllerTest {
   public static final String CUSTOMER_ENDPOINT = EndpointConstants.API_V_0_1_CUSTOMERS;
   public static final String DEFAULT_PAYMENT_ENDPOINT =
       CUSTOMER_ENDPOINT + "/" + validCustomerId + "/payment-method";
+
+  @MockBean
+  AccountsClient accountsClient;
 
   private final CustomerService customerService = Mockito.mock(CustomerService.class);
   private final DeleteAccountService deleteAccountService = Mockito.mock(DeleteAccountService.class);

@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.DeleteAccountDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
@@ -49,6 +50,9 @@ public class CustomerControllerSecurityTests {
   WebApplicationContext wac;
   @MockBean
   SecurityConstants securityConstants;
+
+  @MockBean
+  AccountsClient accountsClient;
 
   @MockBean
   CustomerService customerService;
