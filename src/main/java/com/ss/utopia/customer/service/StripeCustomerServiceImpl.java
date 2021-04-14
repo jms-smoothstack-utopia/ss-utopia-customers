@@ -17,16 +17,25 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "com.ss.utopia.customer.service")
-public class StripeCustomerServiceImpl implements  StripeCustomerService{
+public class StripeCustomerServiceImpl implements  StripeCustomerService {
 
   @Getter @Setter
   private String stripeKey;
 
   @Override
   public String createStripeCustomer(CustomerCreateParams params) {
-   try {
+    try {
       Customer stripeCustomer = Customer.create(params, makeRequestOptions());
       return stripeCustomer.getId();
+    } catch (StripeException e) {
+      throw new CaughtStripeException(e);
+    }
+  }
+
+  @Override
+  public Customer retrieveStripeCustomer(String customerId) {
+    try {
+      return Customer.retrieve(customerId, makeRequestOptions());
     } catch (StripeException e) {
       throw new CaughtStripeException(e);
     }
@@ -46,7 +55,7 @@ public class StripeCustomerServiceImpl implements  StripeCustomerService{
   public void deleteStripeCustomer(String stripeId) {
     try {
       Customer customer = Customer.retrieve(stripeId, makeRequestOptions());
-      customer.delete();
+      customer.delete(makeRequestOptions());
     } catch (StripeException e) {
       throw new CaughtStripeException(e);
     }
