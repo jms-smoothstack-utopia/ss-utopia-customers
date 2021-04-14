@@ -6,6 +6,7 @@ import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.AccountsClientException;
@@ -15,9 +16,12 @@ import com.ss.utopia.customer.exception.NoSuchCustomerException;
 import com.ss.utopia.customer.exception.NoSuchPaymentMethod;
 import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.repository.CustomerRepository;
+import com.stripe.param.CustomerCreateParams;
 import java.util.List;
 import java.util.UUID;
 import javax.validation.Valid;
+
+import com.stripe.param.CustomerUpdateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,7 @@ public class CustomerServiceImpl implements CustomerService {
   private final CustomerRepository customerRepository;
   private final AccountsClient accountsClient;
   private final ServiceAuthenticationProvider serviceAuthenticationProvider;
+  private final StripeCustomerService stripeCustomerService;
 
   /**
    * Gets all {@link Customer} records.
@@ -81,6 +86,25 @@ public class CustomerServiceImpl implements CustomerService {
           throw new DuplicateEmailException(c.getEmail());
         });
 
+    CustomerCreateParams.Address stripeAddr = CustomerCreateParams.Address.builder()
+            .setLine1(customerDto.getAddrLine1())
+            .setLine2(customerDto.getAddrLine2())
+            .setCity(customerDto.getCity())
+            .setState(customerDto.getState())
+            .setPostalCode(customerDto.getZipcode())
+            .build();
+
+    CustomerCreateParams params = CustomerCreateParams.builder()
+            .setEmail(customer.getEmail())
+            .setName(customer.getFirstName() + " " + customer.getLastName())
+            .setPhone(customer.getPhoneNumber())
+            .setAddress(stripeAddr)
+            .build();
+
+    //Stripe creation is before account DTO so that if Stripe fails, an account is not created
+    var stripeId = stripeCustomerService.createStripeCustomer(params);
+    customer.setStripeId(stripeId);
+
     var accountDto = CustomerDtoMapper.createUserAccountDto(customerDto);
 
     var response = accountsClient.createNewAccount(accountDto);
@@ -123,9 +147,27 @@ public class CustomerServiceImpl implements CustomerService {
       accountsClient.updateCustomerEmail(header, oldValue.getId(), newValue.getEmail());
     }
 
+    CustomerUpdateParams.Address stripeAddr = CustomerUpdateParams.Address.builder()
+            .setLine1(updateCustomerDto.getAddrLine1())
+            .setLine2(updateCustomerDto.getAddrLine2())
+            .setCity(updateCustomerDto.getCity())
+            .setState(updateCustomerDto.getState())
+            .setPostalCode(updateCustomerDto.getZipcode())
+            .build();
+
+    CustomerUpdateParams params = CustomerUpdateParams.builder()
+            .setEmail(updateCustomerDto.getEmail())
+            .setName(updateCustomerDto.getFirstName() + " " + updateCustomerDto.getLastName())
+            .setPhone(updateCustomerDto.getPhoneNumber())
+            .setAddress(stripeAddr)
+            .build();
+
+    stripeCustomerService.updateStripeCustomer(oldValue.getStripeId(), params);
+
     // set from old payment methods or it'll be erased
     newValue.setPaymentMethods(oldValue.getPaymentMethods());
     newValue.setId(customerId);
+    newValue.setStripeId(oldValue.getStripeId());
     return customerRepository.save(newValue);
   }
 
@@ -138,8 +180,10 @@ public class CustomerServiceImpl implements CustomerService {
   public void removeCustomerById(UUID id) {
     notNull(id);
 
-    customerRepository.findById(id)
-        .ifPresent(customerRepository::delete);
+    var customer = getCustomerById(id);
+
+    stripeCustomerService.deleteStripeCustomer(customer.getStripeId());
+    customerRepository.delete(customer);
   }
 
   /**

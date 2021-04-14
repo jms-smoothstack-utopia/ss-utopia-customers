@@ -51,9 +51,12 @@ class CustomerServiceImplUnitTest {
   private final AccountsClient accountsClient = Mockito.mock(AccountsClient.class);
   private final ServiceAuthenticationProvider serviceAuthenticationProvider = Mockito.mock(
       ServiceAuthenticationProvider.class);
+  private final StripeCustomerService stripeCustomerService = Mockito.mock(
+          StripeCustomerServiceImpl.class);
   private final CustomerService service = new CustomerServiceImpl(repository,
                                                                   accountsClient,
-                                                                  serviceAuthenticationProvider);
+                                                                  serviceAuthenticationProvider,
+                                                                  stripeCustomerService);
 
   @BeforeAll
   static void beforeAll() {
