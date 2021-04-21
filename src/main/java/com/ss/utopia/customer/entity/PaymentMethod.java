@@ -30,4 +30,16 @@ public class PaymentMethod {
 
   private String notes;
 
+  @NotNull
+  private String brand;
+
+  @NotNull
+  private Long expMonth;
+
+  @NotNull
+  private Long expYear;
+
+  @NotNull
+  private String last4;
+
 }

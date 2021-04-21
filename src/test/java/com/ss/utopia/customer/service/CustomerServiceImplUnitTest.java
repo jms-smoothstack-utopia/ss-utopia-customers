@@ -7,15 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
-import com.ss.utopia.customer.dto.CreateCustomerDto;
-import com.ss.utopia.customer.dto.PaymentMethodDto;
-import com.ss.utopia.customer.dto.UpdateCustomerDto;
-import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.*;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
@@ -31,6 +27,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+
+import com.stripe.exception.StripeException;
+import com.stripe.net.RequestOptions;
+import com.stripe.param.PaymentMethodCreateParams;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +44,9 @@ class CustomerServiceImplUnitTest {
   private static Customer firstCustomer;
   private static Customer secondCustomer;
   private static PaymentMethod paymentMethodFirstCustomer;
+  private static PaymentMethodDto paymentMethodFirstCustomerDto;
+  private static PaymentMethodCreateParams mockPaymentMethodCreateParams;
+  private static com.stripe.model.PaymentMethod mockPaymentMethod;
   private static CreateCustomerDto dtoFirstCustomer;
   private static UpdateCustomerDto dtoSecondCustomer;
 
@@ -51,8 +54,9 @@ class CustomerServiceImplUnitTest {
   private final AccountsClient accountsClient = Mockito.mock(AccountsClient.class);
   private final ServiceAuthenticationProvider serviceAuthenticationProvider = Mockito.mock(
       ServiceAuthenticationProvider.class);
-  private final StripeCustomerService stripeCustomerService = Mockito.mock(
+  private final StripeCustomerServiceImpl stripeCustomerService = Mockito.mock(
           StripeCustomerServiceImpl.class);
+
   private final CustomerService service = new CustomerServiceImpl(repository,
                                                                   accountsClient,
                                                                   serviceAuthenticationProvider,
@@ -60,12 +64,40 @@ class CustomerServiceImplUnitTest {
 
   @BeforeAll
   static void beforeAll() {
-    paymentMethodFirstCustomer = PaymentMethod.builder()
-        .id(1L)
-        .ownerId(firstCustomerId)
-        .accountNum("123456789")
+
+    paymentMethodFirstCustomerDto = PaymentMethodDto.builder()
+        .cardNumber("4242424242424242")   //card number that always succeeds
+        .expMonth(12L)                    //https://stripe.com/docs/testing#cards
+        .expYear(2029L)
+        .cvc("000")
         .notes("primary method")
         .build();
+
+    mockPaymentMethodCreateParams = PaymentMethodCreateParams.builder()
+        .setType(PaymentMethodCreateParams.Type.CARD)
+        .setCard(PaymentMethodCreateParams.CardDetails.builder()
+            .setNumber(paymentMethodFirstCustomerDto.getCardNumber())
+            .setExpMonth(paymentMethodFirstCustomerDto.getExpMonth())
+            .setExpYear(paymentMethodFirstCustomerDto.getExpYear())
+            .setCvc(paymentMethodFirstCustomerDto.getCvc())
+            .build())
+        .build();
+
+    try {
+      mockPaymentMethod = com.stripe.model.PaymentMethod.create(mockPaymentMethodCreateParams,
+              RequestOptions.builder()
+                      .setApiKey("sk_test_4eC39HqLyjWDarjtT1zdp7dc")  //public test key
+                      .build());
+    } catch (StripeException e) {
+      e.printStackTrace();
+    }
+
+    paymentMethodFirstCustomer = PaymentMethod.builder()
+            .id(1L)
+            .ownerId(firstCustomerId)
+            .stripeId(mockPaymentMethod.getId())
+            .notes(paymentMethodFirstCustomerDto.getNotes())
+            .build();
 
     var paymentMethodSet = new HashSet<PaymentMethod>();
     paymentMethodSet.add(paymentMethodFirstCustomer);
@@ -86,6 +118,7 @@ class CustomerServiceImplUnitTest {
                 .state("GA")
                 .zipcode("12345-6789").build()))
         .paymentMethods(paymentMethodSet)
+        .stripeId("cus_TestStripeId01")
         .build();
 
     dtoFirstCustomer = CreateCustomerDto.builder()
@@ -119,9 +152,10 @@ class CustomerServiceImplUnitTest {
             PaymentMethod.builder()
                 .id(2L)
                 .ownerId(secondCustomerId)
-                .accountNum("98765431")
+                .stripeId("pm_FooBarFooBarFooBarFooBar")
                 .notes(null)
                 .build()))
+            .stripeId("cus_TestStripeId02")
         .build();
 
     dtoSecondCustomer = UpdateCustomerDto.builder()
@@ -363,6 +397,23 @@ class CustomerServiceImplUnitTest {
   }
 
   @Test
+  void test_getAllPaymentMethodsFor_returnsPaymentMethods() {
+    when(repository.findById(firstCustomerId)).thenReturn(Optional.of(firstCustomer));
+
+    var result = service.getAllPaymentMethodsFor(firstCustomerId);
+
+    assertTrue(result.contains(paymentMethodFirstCustomer));
+  }
+
+  @Test
+  void test_getAllPaymentMethodsFor_ThrowsNoSuchCustomerExceptionIfNotFound() {
+    when(repository.findById(any())).thenReturn(Optional.empty());
+
+    assertThrows(NoSuchCustomerException.class,
+            () -> service.getAllPaymentMethodsFor(firstCustomerId));
+  }
+
+  @Test
   void test_addPaymentMethod_ReturnsCreatedPaymentId() {
     firstCustomer.getPaymentMethods().clear();
 
@@ -371,6 +422,7 @@ class CustomerServiceImplUnitTest {
 
     when(repository.findById(firstCustomerId))
         .thenReturn(Optional.of(firstCustomer));
+
 
     when(repository.save(any())).thenReturn(Customer.builder()
                                                 .id(firstCustomerId)
@@ -388,12 +440,17 @@ class CustomerServiceImplUnitTest {
                                                         .state("GA")
                                                         .zipcode("12345-6789").build()))
                                                 .paymentMethods(paymentMethodSet)
+                                                .stripeId("cus_TestStripeId01")
                                                 .build());
 
-    var result = service.addPaymentMethod(firstCustomerId, PaymentMethodDto.builder()
-        .accountNum(paymentMethodFirstCustomer.getAccountNum())
-        .notes(paymentMethodFirstCustomer.getNotes())
-        .build());
+
+    when(stripeCustomerService.createPaymentMethod(any())).thenReturn(mockPaymentMethod.getId());
+    when(stripeCustomerService.retrieveStripePaymentMethod(anyString()))
+            .thenReturn(mockPaymentMethod);
+
+    doNothing().when(stripeCustomerService).attachStripePaymentMethod(anyString(), anyString());
+
+    var result = service.addPaymentMethod(firstCustomerId, paymentMethodFirstCustomerDto);
 
     assertEquals(paymentMethodFirstCustomer.getId(), result);
 
@@ -409,6 +466,10 @@ class CustomerServiceImplUnitTest {
 
     when(repository.findById(firstCustomerId))
         .thenReturn(Optional.of(firstCustomer));
+    when(stripeCustomerService.createPaymentMethod(any())).thenReturn(mockPaymentMethod.getId());
+    when(stripeCustomerService.retrieveStripePaymentMethod(anyString()))
+            .thenReturn(mockPaymentMethod);
+    doNothing().when(stripeCustomerService).attachStripePaymentMethod(anyString(), anyString());
 
     when(repository.save(any())).thenReturn(Customer.builder()
                                                 .id(firstCustomerId)
@@ -426,20 +487,18 @@ class CustomerServiceImplUnitTest {
                                                         .state("GA")
                                                         .zipcode("12345-6789").build()))
                                                 .paymentMethods(Collections.emptySet())
+                                                .stripeId("cus_TestStripeId01")
                                                 .build());
 
     assertThrows(NoSuchElementException.class,
-                 () -> service.addPaymentMethod(firstCustomerId, PaymentMethodDto.builder()
-                     .accountNum(paymentMethodFirstCustomer.getAccountNum())
-                     .notes(paymentMethodFirstCustomer.getNotes())
-                     .build()));
+                 () -> service.addPaymentMethod(firstCustomerId, paymentMethodFirstCustomerDto));
 
     firstCustomer.setPaymentMethods(paymentMethodSet);
   }
 
   @Test
   void test_updatePaymentMethod_ThrowsIllegalArgumentExceptionOnNullIds() {
-    var method = PaymentMethodDto.builder().build();
+    var method = UpdatePaymentMethodDto.builder().build();
 
     assertThrows(IllegalArgumentException.class,
                  () -> service.updatePaymentMethod(null, null, null));
@@ -462,10 +521,11 @@ class CustomerServiceImplUnitTest {
     assertThrows(NoSuchPaymentMethod.class,
                  () -> service.updatePaymentMethod(firstCustomerId,
                                                    paymentMethodFirstCustomer.getId(),
-                                                   PaymentMethodDto.builder().build()));
+                                                   UpdatePaymentMethodDto.builder().build()));
 
     firstCustomer.setPaymentMethods(reset);
   }
+
 
   @Test
   void test_updatePaymentMethod_PerformsUpdate() {
@@ -478,8 +538,7 @@ class CustomerServiceImplUnitTest {
 
     service.updatePaymentMethod(firstCustomerId,
                                 paymentMethodFirstCustomer.getId(),
-                                PaymentMethodDto.builder()
-                                    .accountNum("something new")
+                                UpdatePaymentMethodDto.builder()
                                     .notes("something new")
                                     .build());
 
@@ -488,7 +547,7 @@ class CustomerServiceImplUnitTest {
     var expected = PaymentMethod.builder()
         .id(paymentMethodFirstCustomer.getId())
         .ownerId(firstCustomerId)
-        .accountNum("something new")
+        .stripeId(paymentMethodFirstCustomer.getStripeId())
         .notes("something new")
         .build();
 
@@ -549,7 +608,8 @@ class CustomerServiceImplUnitTest {
 
     assertTrue(expected > 0);
 
-    service.removePaymentMethod(firstCustomerId, -1L);
+    assertThrows(NoSuchPaymentMethod.class, () ->
+            service.removePaymentMethod(firstCustomerId, -1L));
 
     var result = firstCustomer.getPaymentMethods().size();
 

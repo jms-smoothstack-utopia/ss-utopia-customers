@@ -2,7 +2,11 @@ package com.ss.utopia.customer.service;
 
 import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.client.authentication.ServiceAuthenticationProvider;
-import com.ss.utopia.customer.dto.*;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.UpdatePaymentMethodDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.exception.AccountsClientException;
@@ -14,13 +18,11 @@ import com.ss.utopia.customer.mapper.CustomerDtoMapper;
 import com.ss.utopia.customer.repository.CustomerRepository;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentMethodCreateParams;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.validation.Valid;
-
-import com.stripe.param.PaymentMethodCreateParams;
-import com.stripe.param.PaymentMethodUpdateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -250,15 +252,24 @@ public class CustomerServiceImpl implements CustomerService {
     var stripeMethodParams = PaymentMethodCreateParams.builder()
             .setType(PaymentMethodCreateParams.Type.CARD)
             .setCard(stripeCard)
-            .setCustomer(customer.getStripeId())
             .build();
 
     String stripeMethodId = stripeCustomerService.createPaymentMethod(stripeMethodParams);
+
+    //must attach here, after the payment method is created
+    stripeCustomerService.attachStripePaymentMethod(stripeMethodId, customer.getStripeId());
+
+    var retrievedMethodCard = stripeCustomerService
+            .retrieveStripePaymentMethod(stripeMethodId).getCard();
 
     var method = PaymentMethod.builder()
         .ownerId(customerId)
         .stripeId(stripeMethodId)
         .notes(paymentMethodDto.getNotes())
+        .brand(retrievedMethodCard.getBrand())
+        .expMonth(retrievedMethodCard.getExpMonth())
+        .expYear(retrievedMethodCard.getExpYear())
+        .last4(retrievedMethodCard.getLast4())
         .build();
     customer.getPaymentMethods().add(method);
 

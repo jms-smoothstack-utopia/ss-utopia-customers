@@ -1,6 +1,11 @@
 package com.ss.utopia.customer.controller;
 
-import com.ss.utopia.customer.dto.*;
+import com.ss.utopia.customer.dto.CreateCustomerDto;
+import com.ss.utopia.customer.dto.DeleteAccountDto;
+import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.dto.UpdateCustomerDto;
+import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.UpdatePaymentMethodDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import com.ss.utopia.customer.security.permissions.AdminOnlyPermission;
@@ -146,8 +151,7 @@ public class CustomerController {
   @GetCustomerByIdPermission
   @GetMapping(value = "/{customerId}/payment-method/all",
           produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-  public ResponseEntity<Set<PaymentMethod>> getAllPaymentMethodsFor(@PathVariable UUID customerId)
-  {
+  public ResponseEntity<Set<PaymentMethod>> getAllPaymentMethodsFor(@PathVariable UUID customerId) {
     log.info("GET PaymentMethods all for customerId=" + customerId);
     var paymentMethods = customerService.getAllPaymentMethodsFor(customerId);
     if (paymentMethods.isEmpty()) {
@@ -174,7 +178,7 @@ public class CustomerController {
   public ResponseEntity<Void> updatePaymentMethod(@PathVariable UUID customerId,
                                                   @PathVariable Long paymentId,
                                                   @Valid @RequestBody
-                                                          UpdatePaymentMethodDto
+                                                        UpdatePaymentMethodDto
                                                             updatePaymentMethodDto) {
     log.info("PUT PaymentMethod customerId,paymentId=" + customerId + "," + paymentId);
     customerService.updatePaymentMethod(customerId, paymentId, updatePaymentMethodDto);

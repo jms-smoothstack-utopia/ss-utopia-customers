@@ -20,5 +20,7 @@ public interface StripeCustomerService {
 
   PaymentMethod retrieveStripePaymentMethod(String paymentMethodId);
 
+  void attachStripePaymentMethod(String paymentMethodId, String customerId);
+
   void detachStripePaymentMethod(String paymentMethodId);
 }

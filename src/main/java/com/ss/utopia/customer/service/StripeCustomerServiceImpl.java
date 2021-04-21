@@ -7,6 +7,7 @@ import com.stripe.model.PaymentMethod;
 import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.CustomerUpdateParams;
+import com.stripe.param.PaymentMethodAttachParams;
 import com.stripe.param.PaymentMethodCreateParams;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -83,12 +84,25 @@ public class StripeCustomerServiceImpl implements  StripeCustomerService {
   }
 
   @Override
+  public void attachStripePaymentMethod(String paymentMethodId, String customerId) {
+    try {
+      PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId, makeRequestOptions());
+      PaymentMethodAttachParams params = PaymentMethodAttachParams.builder()
+              .setCustomer(customerId)
+              .build();
+      paymentMethod.attach(params, makeRequestOptions());
+    } catch (StripeException e) {
+      throw new CaughtStripeException(e);
+    }
+  }
+
+  @Override
   public void detachStripePaymentMethod(String paymentMethodId) {
     try {
       PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentMethodId, makeRequestOptions());
-      paymentMethod.detach();
+      paymentMethod.detach(makeRequestOptions());
     } catch (StripeException e) {
-      e.printStackTrace();
+      throw new CaughtStripeException(e);
     }
   }
 
