@@ -4,9 +4,11 @@ import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerLoyaltyDto;
+import com.ss.utopia.customer.dto.UpdatePaymentMethodDto;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface CustomerService {
@@ -25,11 +27,14 @@ public interface CustomerService {
 
   Long addPaymentMethod(UUID id, PaymentMethodDto paymentMethodDto);
 
-  void updatePaymentMethod(UUID customerId, Long paymentId, PaymentMethodDto paymentMethodDto);
+  void updatePaymentMethod(UUID customerId, Long paymentId,
+                           UpdatePaymentMethodDto updatePaymentMethodDto);
 
   void removePaymentMethod(UUID customerId, Long paymentId);
 
   PaymentMethod getPaymentMethod(UUID customerId, Long paymentId);
+
+  Set<PaymentMethod> getAllPaymentMethodsFor(UUID customerId);
 
   Integer getCustomerLoyaltyPoints(UUID id);
   

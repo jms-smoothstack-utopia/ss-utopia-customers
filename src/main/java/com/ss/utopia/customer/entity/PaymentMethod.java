@@ -26,8 +26,20 @@ public class PaymentMethod {
   private UUID ownerId;
 
   @NotNull
-  private String accountNum;
+  private String stripeId;
 
   private String notes;
+
+  @NotNull
+  private String brand;
+
+  @NotNull
+  private Long expMonth;
+
+  @NotNull
+  private Long expYear;
+
+  @NotNull
+  private String last4;
 
 }

@@ -1,8 +1,6 @@
 package com.ss.utopia.customer.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
@@ -19,6 +17,7 @@ import com.ss.utopia.customer.client.AccountsClient;
 import com.ss.utopia.customer.dto.CreateCustomerDto;
 import com.ss.utopia.customer.dto.UpdateCustomerDto;
 import com.ss.utopia.customer.dto.PaymentMethodDto;
+import com.ss.utopia.customer.dto.UpdatePaymentMethodDto;
 import com.ss.utopia.customer.entity.Address;
 import com.ss.utopia.customer.entity.Customer;
 import com.ss.utopia.customer.entity.PaymentMethod;
@@ -109,7 +108,7 @@ class CustomerControllerTest {
     validPaymentMethod = PaymentMethod.builder()
         .id(1L)
         .ownerId(validCustomer.getId())
-        .accountNum("12345")
+        .stripeId("pm_FooBarFooBarFooBarFooBar")
         .notes("payment notes")
         .build();
 
@@ -130,7 +129,10 @@ class CustomerControllerTest {
         .build();
 
     validPaymentMethodDto = PaymentMethodDto.builder()
-        .accountNum(validPaymentMethod.getAccountNum())
+        .cardNumber("4242424242424242")   //card number that always succeeds
+        .expMonth(12L)                    //https://stripe.com/docs/testing#cards
+        .expYear(3000L)
+        .cvc("000")
         .notes(validPaymentMethod.getNotes())
         .build();
 
@@ -447,6 +449,46 @@ class CustomerControllerTest {
   }
 
   @Test
+  void test_getAllPaymentMethodsFor_returns200AndExpectedResult() throws Exception {
+    when(customerService.getAllPaymentMethodsFor(validCustomer.getId()))
+            .thenReturn(Set.of(validPaymentMethod));
+    PaymentMethod[] expected = { validPaymentMethod };
+
+    var result = mvc
+            .perform(
+                    get(DEFAULT_PAYMENT_ENDPOINT + "/all"))
+            .andExpect(status().is(200))
+            .andReturn();
+    var response = jsonMapper.readValue(result.getResponse().getContentAsString(),
+            PaymentMethod[].class);
+
+    assertArrayEquals(expected, response);
+  }
+
+  @Test
+  void test_getAllPaymentMethodsFor_returns204WhenNoPaymentMethods() throws Exception {
+    when(customerService.getAllPaymentMethodsFor(validCustomer.getId()))
+            .thenReturn(Set.of());
+
+    var result = mvc
+            .perform(
+                    get(DEFAULT_PAYMENT_ENDPOINT + "/all"))
+            .andExpect(status().is(204));
+  }
+
+  @Test
+  void test_getAllPaymentMethodsFor_returns404OnNoSuchCustomerException() throws Exception {
+    var randomId = UUID.randomUUID();
+    when(customerService.getAllPaymentMethodsFor(any(UUID.class)))
+            .thenThrow(new NoSuchCustomerException(randomId));
+
+    mvc
+            .perform(
+                    get(DEFAULT_PAYMENT_ENDPOINT + "/all"))
+            .andExpect(status().is(404));
+  }
+
+  @Test
   void test_addPaymentMethod_Returns201AndURIOnValidDto() throws Exception {
     when(customerService.addPaymentMethod(validCustomer.getId(), validPaymentMethodDto))
         .thenReturn(validPaymentMethod.getId());
@@ -486,10 +528,10 @@ class CustomerControllerTest {
 
   @Test
   void test_addPaymentMethod_DoesNotAllowInvalidDto() {
-    validPaymentMethodDto.setAccountNum(null);
+    validPaymentMethodDto.setCardNumber(null);
     assertFalse(noValidationViolations(validPaymentMethodDto));
 
-    validPaymentMethodDto.setAccountNum("");
+    validPaymentMethodDto.setCardNumber("");
     assertFalse(noValidationViolations(validPaymentMethodDto));
   }
 
@@ -511,7 +553,7 @@ class CustomerControllerTest {
   void test_updatePaymentMethod_Returns404OnNoSuchCustomerException() throws Exception {
     doThrow(new NoSuchCustomerException(validCustomerId))
         .when(customerService)
-        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(UpdatePaymentMethodDto.class));
 
     var result = mvc
         .perform(
@@ -528,7 +570,7 @@ class CustomerControllerTest {
   void test_updatePaymentMethod_Returns404OnNoSuchPaymentMethodException() throws Exception {
     doThrow(new NoSuchPaymentMethod(validCustomerId, 1L))
         .when(customerService)
-        .updatePaymentMethod(any(UUID.class), anyLong(), any(PaymentMethodDto.class));
+        .updatePaymentMethod(any(UUID.class), anyLong(), any(UpdatePaymentMethodDto.class));
 
     var result = mvc
         .perform(

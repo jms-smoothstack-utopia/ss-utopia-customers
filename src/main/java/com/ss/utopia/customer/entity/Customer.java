@@ -51,4 +51,6 @@ public class Customer {
   @ToString.Exclude
   @OneToMany(cascade = CascadeType.ALL)
   private Set<PaymentMethod> paymentMethods;
+
+  private String stripeId;
 }

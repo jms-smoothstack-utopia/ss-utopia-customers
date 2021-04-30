@@ -103,6 +103,17 @@ public class ExceptionControllerAdvisor {
     return baseResponse(CLIENT_EXCEPTION_MESSAGE, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(CaughtStripeException.class)
+  public Map<String, Object> caughtStripeException(CaughtStripeException ex) {
+    log.error(ex.getMessage());
+    var response = baseResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    response.put("Stripe code", ex.getStripeCode());
+    response.put("Stripe type", ex.getStripeErrorType());
+
+    return response;
+  }
+
   /**
    * Helper function to get error message or provide a default if not present.
    */

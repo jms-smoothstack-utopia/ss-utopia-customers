@@ -63,12 +63,15 @@ public class CustomerControllerSecurityTests {
   PaymentMethod mockPaymentMethod = PaymentMethod.builder()
       .id(1L)
       .ownerId(UUID.fromString("a4a9feca-bfe7-4c45-8319-7cb6cdd359db"))
-      .accountNum("123456789")
+      .stripeId("pm_FooBarFooBarFooBarFooBar")
       .notes("test test")
       .build();
 
   PaymentMethodDto mockPaymentDto = PaymentMethodDto.builder()
-      .accountNum(mockPaymentMethod.getAccountNum())
+      .cardNumber("4242424242424242")   //card number that always succeeds
+      .expMonth(12L)                    //https://stripe.com/docs/testing#cards
+      .expYear(3000L)
+      .cvc("000")
       .notes(mockPaymentMethod.getNotes())
       .build();
 
